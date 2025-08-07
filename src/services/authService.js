@@ -9,19 +9,27 @@ export const authService = {
   },
 
   async signIn(credentials) {
-    try {
-      const response = await authAPI.signIn(credentials);
-      const { token, user } = response.data;
-      
-      // Store token and user info
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
-      this.setStoredUser(user);
-      
-      return response.data;
-    } catch (error) {
-      // 모든 에러를 그대로 전파 (OTP 필요 에러 포함)
-      throw error;
-    }
+    const response = await authAPI.signIn(credentials);
+    console.log('API Response:', response); // 응답 구조 확인용
+    
+    // ApiResponse 구조에 맞게 데이터 접근
+    const { accessToken } = response.data.data;
+    
+    // Store token
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, `Bearer ${accessToken}`);
+    
+    // Create basic user info from credentials
+    const user = {
+      email: credentials.email,
+    };
+    
+    // Store user info
+    this.setStoredUser(user);
+    
+    return {
+      accessToken,
+      user,
+    };
   },
 
   async verifyOTP(verificationData) {

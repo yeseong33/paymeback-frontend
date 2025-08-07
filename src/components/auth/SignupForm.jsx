@@ -41,7 +41,7 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
     setLoading(true);
     try {
       await signUp(formData);
-      toast.success('회원가입이 완료되었습니다. 이메일을 확인해주세요.');
+      toast.success('인증번호를 전송했습니다. 이메일을 확인해주세요.');
       onSignupSuccess(formData.email);
     } catch (error) {
       toast.error(error.message);
@@ -66,17 +66,11 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
         <ThemeToggle />
       </div>
       
-      <a href="#" className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-        <div className="w-8 h-8 mr-2 bg-primary-500 dark:bg-primary-500 rounded-full flex items-center justify-center">
-          <span className="text-white font-bold">DP</span>
-        </div>
-        Dutch Pay
-      </a>
-      <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 md:mt-0 sm:max-w-md xl:p-0 transition-colors duration-200">
+      <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
+        Pay Me Back
+      </h1>
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 md:mt-0 sm:max-w-md xl:p-0 transition-colors duration-200 mt-6">
         <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-          <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
-            Dutch Pay에 오신 것을 환영합니다
-          </h1>
           <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">

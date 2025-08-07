@@ -11,8 +11,15 @@ export const useAuthStore = create((set, get) => ({
 
   initialize: () => {
     try {
-      // 토큰이 없으면 바로 초기화 완료
-      if (!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN)) {
+      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      const storedUser = authService.getStoredUser();
+      
+      // 토큰이 없거나 사용자 정보가 없으면 로그아웃 상태로 초기화
+      if (!token || !storedUser) {
+        // 토큰이나 사용자 정보가 하나라도 없으면 둘 다 삭제
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.USER);
+        
         set({ 
           isAuthenticated: false, 
           user: null,
@@ -23,8 +30,7 @@ export const useAuthStore = create((set, get) => ({
         return;
       }
 
-      const storedUser = authService.getStoredUser();
-      
+      // 토큰과 사용자 정보가 모두 있는 경우 로그인 상태로 초기화
       set({ 
         isAuthenticated: true, 
         user: storedUser,
@@ -34,6 +40,10 @@ export const useAuthStore = create((set, get) => ({
       });
     } catch (error) {
       console.log('Auth initialization error:', error);
+      // 에러 발생 시 모든 인증 정보 삭제
+      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.USER);
+      
       set({ 
         isAuthenticated: false, 
         user: null,
@@ -63,22 +73,26 @@ export const useAuthStore = create((set, get) => ({
           needsOTPVerification: true,
           pendingCredentials: credentials,
           isAuthenticated: false,
-          user: null
+          user: null,
+          loading: false
         });
         return response;
       }
 
       // 로그인 성공
-      const { user } = response;
-      authService.setStoredUser(user);
-      set({ 
-        user, 
-        isAuthenticated: true,
-        needsOTPVerification: false,
-        pendingCredentials: null
-      });
-      
-      return response;
+      const { user, accessToken } = response;
+      if (accessToken) {
+        set({ 
+          user, 
+          isAuthenticated: true,
+          needsOTPVerification: false,
+          pendingCredentials: null,
+          loading: false
+        });
+        return response;
+      } else {
+        throw new Error('로그인 응답에 토큰이 없습니다.');
+      }
     } catch (error) {
       console.log('Sign in failed:', error);
       
@@ -97,7 +111,8 @@ export const useAuthStore = create((set, get) => ({
             needsOTPVerification: true,
             pendingCredentials: credentials,
             isAuthenticated: false,
-            user: null
+            user: null,
+            loading: false
           });
           
           // 성공 메시지 반환
@@ -107,11 +122,13 @@ export const useAuthStore = create((set, get) => ({
           };
         } catch (resendError) {
           console.error('Failed to send OTP:', resendError);
+          set({ loading: false });
           throw resendError;
         }
       }
       
       // 기타 에러
+      set({ loading: false });
       throw error;
     }
   },

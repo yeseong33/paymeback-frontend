@@ -7,7 +7,8 @@ import Button from '../common/Button';
 import Input from '../common/Input';
 import ThemeToggle from '../common/ThemeToggle';
 
-const OTPVerification = () => {
+
+const OTPVerification = ({ onVerificationSuccess }) => {
   const { verifyOTP, resendOTP, signIn } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -68,12 +69,11 @@ const OTPVerification = () => {
         await verifyOTP(verificationData);
         // 인증 성공 후 다시 로그인 시도
         await signIn({ email, password: location.state.password });
-        toast.success('로그인되었습니다.');
-        navigate('/main');
+        onVerificationSuccess();
       } else {
         // 회원가입 시 OTP 인증
         await verifyOTP(verificationData);
-        toast.success('이메일 인증이 완료되었습니다.');
+        toast.success('이메일 인증이 완료되었습니다.\n다시 로그인 해주세요.');
         navigate('/auth');
       }
     } catch (error) {
@@ -175,13 +175,13 @@ const OTPVerification = () => {
               fullWidth
               loading={resendLoading}
               onClick={handleResend}
-              disabled={countdown > 240} // 1분 후 재발송 가능
             >
               재발송
             </Button>
           </div>
         </form>
       </div>
+
     </div>
   );
 };

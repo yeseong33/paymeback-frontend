@@ -54,8 +54,12 @@ const LoginForm = ({ onSwitchToSignup }) => {
         return;
       }
       
-      // 로그인 성공
-      toast.success('로그인되었습니다.');
+      // 로그인 성공 (OTP가 필요하지 않은 경우에만)
+      if (!response?.requiresOTP && response?.accessToken) {
+        toast.success('로그인되었습니다.');
+        navigate('/main', { replace: true });
+        return;
+      }
       
     } catch (error) {
       console.error('Login error:', error);
@@ -79,7 +83,11 @@ const LoginForm = ({ onSwitchToSignup }) => {
           },
           replace: true  // 강제로 현재 history를 대체
         });
-        console.log('Navigation called');
+        return;
+      }
+
+      if (error.code === 'U003') {
+        toast.error('비밀번호가 일치하지 않습니다.');
         return;
       }
       

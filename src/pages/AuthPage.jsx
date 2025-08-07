@@ -1,15 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
 import SignupForm from '../components/auth/SignupForm';
 import OTPVerification from '../components/auth/OTPVerification';
+import AlertModal from '../components/common/AlertModal';
+import { useAuth } from '../hooks/useAuth';
 
 const AuthPage = () => {
   const location = useLocation();
-  console.log('AuthPage mounted/updated, location:', location);
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [showOTPAlert, setShowOTPAlert] = useState(false);
   const initialView = location.state?.view || 'login';
-  console.log('Initial view:', initialView);
   const [currentView, setCurrentView] = useState(initialView); // 'login', 'signup', 'otp'
+
+  // 인증된 사용자는 메인 페이지로 리다이렉트
+  useEffect(() => {
+    if (isAuthenticated && currentView !== 'otp') {
+      navigate('/main', { replace: true });
+    }
+  }, [isAuthenticated, navigate, currentView]);
   
   useEffect(() => {
     console.log('AuthPage location.state:', location.state);
@@ -59,10 +69,28 @@ const AuthPage = () => {
           email={location.state?.email || signupEmail}
           mode={location.state?.mode || 'signup'}
           password={location.state?.password}
-          onVerificationSuccess={handleOTPVerificationSuccess}
+          onVerificationSuccess={() => {
+            handleOTPVerificationSuccess();
+            setShowOTPAlert(true);
+          }}
           onBack={handleOTPBack}
         />
       )}
+
+      <AlertModal
+        isOpen={showOTPAlert}
+        onClose={() => {
+          setShowOTPAlert(false);
+          if (location.state?.mode === 'signin') {
+            navigate('/main');
+          }
+        }}
+        message={
+          location.state?.mode === 'signin'
+            ? <>이메일 인증이 완료되었습니다.<br/>다시 로그인해주세요.</>
+            : "이메일 인증이 완료되었습니다."
+        }
+      />
     </div>
   );
 };
