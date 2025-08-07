@@ -39,7 +39,6 @@ const MainPage = () => {
   return (
     <div className="page">
       <Header 
-        title={`안녕하세요, ${user?.name || '사용자'}님!`}
         showLogout={true}
       />
       
@@ -66,7 +65,7 @@ const MainPage = () => {
         {/* 내 모임 목록 */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
+            <h2 className="text-xl font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
               <Users size={20} />
               내 모임
             </h2>
@@ -87,13 +86,13 @@ const MainPage = () => {
         </div>
 
         {/* 도움말 */}
-        <div className="card bg-gray-50">
-          <h3 className="font-medium mb-3">사용법</h3>
-          <div className="space-y-2 text-sm text-gray-600">
-            <p>1. <strong>모임 만들기</strong>로 새로운 더치페이 모임을 생성하세요</p>
-            <p>2. 생성된 <strong>QR 코드</strong>를 친구들과 공유하세요</p>
+        <div className="card bg-gray-50 dark:bg-gray-800">
+          <h3 className="font-medium mb-3 text-gray-900 dark:text-white">사용법</h3>
+          <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+            <p>1. <strong className="text-gray-900 dark:text-white">모임 만들기</strong>로 새로운 더치페이 모임을 생성하세요</p>
+            <p>2. 생성된 <strong className="text-gray-900 dark:text-white">QR 코드</strong>를 친구들과 공유하세요</p>
             <p>3. 친구들이 QR 코드로 모임에 참여할 수 있습니다</p>
-            <p>4. 결제 금액을 입력하면 자동으로 <strong>1/N</strong> 분할됩니다</p>
+            <p>4. 결제 금액을 입력하면 자동으로 <strong className="text-gray-900 dark:text-white">1/N</strong> 분할됩니다</p>
             <p>5. 각자 결제를 진행하면 완료!</p>
           </div>
         </div>

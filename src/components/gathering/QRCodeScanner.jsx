@@ -126,7 +126,7 @@ const QRCodeScanner = ({ isOpen, onClose, onSuccess }) => {
               </div>
             </div>
             
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-sm text-gray-600 dark:text-gray-300">
               QR 코드를 프레임 안에 맞춰주세요
             </p>
           </div>

@@ -10,13 +10,22 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+// Add artificial delay in development mode
+const addArtificialDelay = async () => {
+  const delay = import.meta.env.VITE_API_DELAY;
+  if (delay) {
+    await new Promise(resolve => setTimeout(resolve, parseInt(delay)));
+  }
+};
+
+// Request interceptor to add auth token and artificial delay
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    await addArtificialDelay();
     return config;
   },
   (error) => {

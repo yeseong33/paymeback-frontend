@@ -74,20 +74,20 @@ const CreateGathering = ({ isOpen, onClose, onSuccess }) => {
         />
 
         <div className="form-group">
-          <label className="form-label">모임 설명</label>
+          <label className="form-label text-gray-900 dark:text-white">모임 설명</label>
           <textarea
             name="description"
             value={formData.description}
             onChange={handleChange}
             placeholder="모임에 대한 간단한 설명을 입력해주세요"
-            className="input"
+            className="input bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             rows={4}
             maxLength={500}
           />
           {errors.description && (
-            <div className="form-error">{errors.description}</div>
+            <div className="form-error text-red-500 dark:text-red-400">{errors.description}</div>
           )}
-          <div className="text-xs text-gray-500 mt-1">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {formData.description.length}/500
           </div>
         </div>
