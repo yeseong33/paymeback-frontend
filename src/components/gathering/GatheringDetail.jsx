@@ -87,7 +87,9 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
             </div>
             
             <div className="col-span-2">
-              <span className="text-gray-500 dark:text-gray-400">방장: {gathering.owner.name}</span>
+              <span className="text-gray-500 dark:text-gray-400">
+                방장: {gathering.owner?.name || '알 수 없음'}
+              </span>
             </div>
           </div>
 
@@ -154,8 +156,10 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
                   <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-200">
                     {index + 1}
                   </div>
-                  <span className="font-medium text-gray-900 dark:text-white">{participant.user.name}</span>
-                  {participant.user.email === gathering.owner.email && (
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {participant.user?.name || participant.name || '알 수 없음'}
+                  </span>
+                  {(participant.user?.email || participant.email) === gathering.owner?.email && (
                     <span className="text-xs bg-black text-white px-2 py-1 rounded">방장</span>
                   )}
                 </div>

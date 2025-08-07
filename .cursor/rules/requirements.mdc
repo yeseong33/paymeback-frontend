@@ -9,6 +9,38 @@
   - 단위: 밀리초(ms)
   - 목적: 로딩 상태 및 스켈레톤 UI 테스트
 
+### 개발용 모킹 데이터
+- 백엔드 API 개발 전까지 프론트엔드 개발을 위한 임시 기능
+- 개발 환경(import.meta.env.DEV)에서만 동작
+- 구현된 모킹 기능:
+  - 모임 생성 (createGathering)
+  - 모임 목록 조회 (getMyGatherings)
+  - 모임 상세 조회 (getGathering)
+- 모킹 데이터 구조:
+  ```javascript
+  {
+    id: number,
+    title: string,
+    description: string,
+    status: 'ACTIVE' | 'PAYMENT_REQUESTED' | 'COMPLETED' | 'CLOSED',
+    createdAt: string,
+    participantCount: number,
+    totalAmount: number,
+    amountPerPerson: number,
+    owner: {
+      id: number,
+      name: string,
+      email: string
+    },
+    participants: Array<{
+      id: number,
+      name: string,
+      email: string
+    }>
+  }
+  ```
+- ⚠️ 주의: 백엔드 API 연동 시 모킹 코드 제거 필요
+
 ### UI/UX 요구사항
 
 #### 로딩 상태 표시

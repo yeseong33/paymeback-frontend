@@ -1,29 +1,36 @@
-import api from './api';
-import { ENDPOINTS, STORAGE_KEYS } from '../utils/constants';
+import { authAPI } from '../api';
+import { STORAGE_KEYS } from '../utils/constants';
+import { AUTH_ERROR_CODES } from '../utils/errorCodes';
 
 export const authService = {
   async signUp(userData) {
-    const response = await api.post(ENDPOINTS.SIGNUP, userData);
+    const response = await authAPI.signUp(userData);
     return response.data;
   },
 
   async signIn(credentials) {
-    const response = await api.post(ENDPOINTS.SIGNIN, credentials);
-    const { accessToken } = response.data;
-    
-    // Store token
-    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-    
-    return response.data;
+    try {
+      const response = await authAPI.signIn(credentials);
+      const { token, user } = response.data;
+      
+      // Store token and user info
+      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+      this.setStoredUser(user);
+      
+      return response.data;
+    } catch (error) {
+      // 모든 에러를 그대로 전파 (OTP 필요 에러 포함)
+      throw error;
+    }
   },
 
-  async verifyOTP(otpData) {
-    const response = await api.post(ENDPOINTS.VERIFY_OTP, otpData);
+  async verifyOTP(verificationData) {
+    const response = await authAPI.verify(verificationData);
     return response.data;
   },
 
   async resendOTP(email) {
-    const response = await api.post(`${ENDPOINTS.RESEND_OTP}?email=${email}`);
+    const response = await authAPI.resendVerification(email);
     return response.data;
   },
 

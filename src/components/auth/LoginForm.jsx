@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { validateEmail } from '../../utils/validation';
 import ThemeToggle from '../common/ThemeToggle';
 
 const LoginForm = ({ onSwitchToSignup }) => {
-  const { signIn } = useAuth();
+  const { signIn, needsOTPVerification } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -35,10 +37,53 @@ const LoginForm = ({ onSwitchToSignup }) => {
     
     setLoading(true);
     try {
-      await signIn(formData);
+      const response = await signIn(formData);
+      
+      // OTP 인증이 필요한 경우 OTP 인증 페이지로 이동
+      if (response?.requiresOTP) {
+        console.log('OTP required, navigating to verification page');
+        navigate('/auth', { 
+          state: { 
+            view: 'otp',
+            email: formData.email,
+            password: formData.password,
+            mode: 'signin'
+          },
+          replace: true
+        });
+        return;
+      }
+      
+      // 로그인 성공
       toast.success('로그인되었습니다.');
+      
     } catch (error) {
-      toast.error(error.message);
+      console.error('Login error:', error);
+      
+      // U004 에러는 authStore에서 자동으로 처리됨
+      if (error.code === 'U004') {
+        console.log('U004 error detected, attempting navigation');
+        toast.success('인증 코드가 발송되었습니다. 이메일을 확인해주세요.');
+        console.log('Navigating with state:', { 
+          view: 'otp',
+          email: formData.email,
+          password: formData.password,
+          mode: 'signin'
+        });
+        navigate('/auth', { 
+          state: { 
+            view: 'otp',
+            email: formData.email,
+            password: formData.password,
+            mode: 'signin'
+          },
+          replace: true  // 강제로 현재 history를 대체
+        });
+        console.log('Navigation called');
+        return;
+      }
+      
+      toast.error(error.message || '로그인 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }

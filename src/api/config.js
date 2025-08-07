@@ -1,5 +1,7 @@
 import axios from 'axios';
-import { API_BASE_URL, STORAGE_KEYS } from '../utils/constants';
+import { STORAGE_KEYS } from '../utils/constants';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
 
 // Create axios instance
 const api = axios.create({
@@ -49,6 +51,8 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    console.log('API Error Response:', error.response?.data);  // 에러 응답 로깅
+
     if (error.response?.status === 401) {
       // Token expired or invalid
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
@@ -56,14 +60,33 @@ api.interceptors.response.use(
       window.location.href = '/auth';
       return Promise.reject(new Error('인증이 만료되었습니다. 다시 로그인해주세요.'));
     }
-    
+
     // API 에러 응답 처리
-    if (error.response?.data?.error) {
-      return Promise.reject(new Error(error.response.data.error.message));
+    if (error.response?.data) {
+      const errorData = error.response.data;
+      
+      // code 필드가 있는 경우
+      if (errorData.code) {
+        return Promise.reject({
+          code: errorData.code,
+          message: errorData.message || '요청 처리 중 오류가 발생했습니다.'
+        });
+      }
+      
+      // error 객체가 있는 경우
+      if (errorData.error) {
+        return Promise.reject({
+          code: errorData.error.code,
+          message: errorData.error.message || '요청 처리 중 오류가 발생했습니다.'
+        });
+      }
     }
     
     // 네트워크 오류 등 기타 에러
-    return Promise.reject(new Error('요청 처리 중 오류가 발생했습니다.'));
+    return Promise.reject({
+      code: 'UNKNOWN_ERROR',
+      message: '요청 처리 중 오류가 발생했습니다.'
+    });
   }
 );
 

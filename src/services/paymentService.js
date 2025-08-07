@@ -1,19 +1,18 @@
-import api from './api';
-import { ENDPOINTS } from '../utils/constants';
+import { paymentAPI } from '../api';
 
 export const paymentService = {
-  async processPayment(gatheringId, paymentData) {
-    const response = await api.post(`${ENDPOINTS.PAYMENTS}/gatherings/${gatheringId}`, paymentData);
+  async createPayment(paymentData) {
+    const response = await paymentAPI.createPayment(paymentData);
     return response.data;
   },
 
-  async getMyPaymentStatus(gatheringId) {
-    const response = await api.get(`${ENDPOINTS.PAYMENTS}/gatherings/${gatheringId}/my`);
+  async getPaymentHistory(gatheringId) {
+    const response = await paymentAPI.getPaymentHistory(gatheringId);
     return response.data;
   },
 
-  async getGatheringPayments(gatheringId) {
-    const response = await api.get(`${ENDPOINTS.PAYMENTS}/gatherings/${gatheringId}`);
+  async getPaymentStatus(paymentId) {
+    const response = await paymentAPI.getPaymentStatus(paymentId);
     return response.data;
   },
 };

@@ -6,14 +6,25 @@ export const formatCurrency = (amount) => {
 };
 
 export const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
+  if (!dateString) return '날짜 없음';
+  
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return '잘못된 날짜';
+    }
+    
+    return new Intl.DateTimeFormat('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  } catch (error) {
+    console.error('날짜 형식 변환 오류:', error);
+    return '날짜 형식 오류';
+  }
 };
 
 export const formatRelativeTime = (dateString) => {

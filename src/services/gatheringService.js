@@ -1,48 +1,28 @@
-import api from './api';
-import { ENDPOINTS } from '../utils/constants';
+import { gatheringAPI } from '../api';
 
 export const gatheringService = {
   async createGathering(gatheringData) {
-    const response = await api.post(ENDPOINTS.GATHERINGS, gatheringData);
+    const response = await gatheringAPI.create(gatheringData);
     return response.data;
   },
 
   async getGathering(id) {
-    const response = await api.get(`${ENDPOINTS.GATHERINGS}/${id}`);
+    const response = await gatheringAPI.getGathering(id);
     return response.data;
   },
 
-  async joinGathering(qrCode) {
-    const response = await api.post(ENDPOINTS.JOIN_GATHERING, { qrCode });
+  async joinGathering(gatheringId) {
+    const response = await gatheringAPI.joinGathering(gatheringId);
     return response.data;
   },
 
-  async getMyGatherings(page = 0, size = 10) {
-    const response = await api.get(`${ENDPOINTS.MY_GATHERINGS}?page=${page}&size=${size}`);
+  async getMyGatherings() {
+    const response = await gatheringAPI.getMyGatherings();
     return response.data;
   },
 
-  async getParticipatedGatherings(page = 0, size = 10) {
-    const response = await api.get(`${ENDPOINTS.PARTICIPATED_GATHERINGS}?page=${page}&size=${size}`);
+  async getParticipatedGatherings() {
+    const response = await gatheringAPI.getParticipatedGatherings();
     return response.data;
-  },
-
-  async createPaymentRequest(gatheringId, totalAmount) {
-    const response = await api.post(
-      `${ENDPOINTS.GATHERINGS}/${gatheringId}/payment-request?totalAmount=${totalAmount}`
-    );
-    return response.data;
-  },
-
-  async closeGathering(gatheringId) {
-    const response = await api.post(`${ENDPOINTS.GATHERINGS}/${gatheringId}/close`);
-    return response.data;
-  },
-
-  async getQRCodeImage(gatheringId) {
-    const response = await api.get(`${ENDPOINTS.GATHERINGS}/${gatheringId}/qr-image`, {
-      responseType: 'blob'
-    });
-    return response;
   },
 };

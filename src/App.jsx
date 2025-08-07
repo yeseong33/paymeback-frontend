@@ -1,6 +1,6 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './hooks/useAuth';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useAuthStore } from './store/authStore';
 import AuthPage from './pages/AuthPage';
 import MainPage from './pages/MainPage';
 import GatheringPage from './pages/GatheringPage';
@@ -8,13 +8,31 @@ import PaymentPage from './pages/PaymentPage';
 import Loading from './components/common/Loading';
 
 function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, needsOTPVerification, pendingCredentials } = useAuthStore();
+  const location = useLocation();
 
-  if (loading) {
+  // 로딩 중일 때
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900 transition-colors duration-200">
+  //       <Loading />
+  //     </div>
+  //   );
+  // }
+
+  // OTP 인증이 필요하고 현재 인증 페이지가 아닐 때
+  if (needsOTPVerification && location.pathname !== '/auth') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900 transition-colors duration-200">
-        <Loading />
-      </div>
+      <Navigate 
+        to="/auth" 
+        replace 
+        state={{ 
+          view: 'otp',
+          email: pendingCredentials?.email,
+          password: pendingCredentials?.password,
+          mode: 'signin'
+        }} 
+      />
     );
   }
 
@@ -22,11 +40,11 @@ function App() {
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
       <Routes>
         <Route 
-          path="/auth" 
-          element={!user ? <AuthPage /> : <Navigate to="/" replace />} 
+          path="/auth/*" 
+          element={!user ? <AuthPage /> : <Navigate to="/main" replace />} 
         />
         <Route 
-          path="/" 
+          path="/main" 
           element={user ? <MainPage /> : <Navigate to="/auth" replace />} 
         />
         <Route 
@@ -37,7 +55,8 @@ function App() {
           path="/payment/:gatheringId" 
           element={user ? <PaymentPage /> : <Navigate to="/auth" replace />} 
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/" element={<Navigate to={user ? "/main" : "/auth"} replace />} />
+        <Route path="*" element={<Navigate to={user ? "/main" : "/auth"} replace />} />
       </Routes>
     </div>
   );

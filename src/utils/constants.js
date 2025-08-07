@@ -1,22 +1,3 @@
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
-
-export const ENDPOINTS = {
-  // Auth
-  SIGNUP: '/auth/signup',
-  SIGNIN: '/auth/signin',
-  VERIFY_OTP: '/auth/verify-otp',
-  RESEND_OTP: '/auth/resend-otp',
-  
-  // Gatherings
-  GATHERINGS: '/gatherings',
-  JOIN_GATHERING: '/gatherings/join',
-  MY_GATHERINGS: '/gatherings/my',
-  PARTICIPATED_GATHERINGS: '/gatherings/participated',
-  
-  // Payments
-  PAYMENTS: '/payments',
-};
-
 export const STORAGE_KEYS = {
   ACCESS_TOKEN: 'accessToken',
   USER: 'user',

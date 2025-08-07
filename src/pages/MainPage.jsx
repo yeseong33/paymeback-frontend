@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, QrCode, Users } from 'lucide-react';
 import { useGathering } from '../hooks/useGathering';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthStore } from '../store/authStore';
 import Button from '../components/common/Button';
 import Header from '../components/common/Header';
 import GatheringList from '../components/gathering/GatheringList';
@@ -11,14 +11,24 @@ import QRCodeScanner from '../components/gathering/QRCodeScanner';
 
 const MainPage = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { gatherings, getMyGatherings, loading } = useGathering();
+  const { user, isAuthenticated } = useAuthStore();
+  const { gatherings, getMyGatherings, loading, initialize } = useGathering();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showScannerModal, setShowScannerModal] = useState(false);
 
+  // 컴포넌트가 언마운트될 때 gathering store 초기화
   useEffect(() => {
-    loadGatherings();
+    return () => {
+      initialize();
+    };
   }, []);
+
+  // 인증 상태가 변경될 때마다 모임 목록 로드
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      loadGatherings();
+    }
+  }, [isAuthenticated, user]);
 
   const loadGatherings = async () => {
     try {

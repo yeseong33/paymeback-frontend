@@ -1,13 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { validateOTP } from '../../utils/validation';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import ThemeToggle from '../common/ThemeToggle';
 
-const OTPVerification = ({ email, onVerificationSuccess, onBack }) => {
-  const { verifyOTP, resendOTP } = useAuth();
+const OTPVerification = () => {
+  const { verifyOTP, resendOTP, signIn } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  const { email, mode } = location.state || {};
+  
+  useEffect(() => {
+    console.log('OTPVerification mounted with state:', location.state);
+  }, [location.state]);
+  
+  useEffect(() => {
+    if (!email || !mode) {
+      navigate('/auth');
+    }
+  }, [email, mode, navigate]);
   const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -46,9 +61,21 @@ const OTPVerification = ({ email, onVerificationSuccess, onBack }) => {
     setError('');
     
     try {
-      await verifyOTP({ email, otpCode });
-      toast.success('이메일 인증이 완료되었습니다.');
-      onVerificationSuccess();
+      const verificationData = { email, otpCode };
+      
+      if (mode === 'signin') {
+        // 로그인 시 OTP 인증
+        await verifyOTP(verificationData);
+        // 인증 성공 후 다시 로그인 시도
+        await signIn({ email, password: location.state.password });
+        toast.success('로그인되었습니다.');
+        navigate('/main');
+      } else {
+        // 회원가입 시 OTP 인증
+        await verifyOTP(verificationData);
+        toast.success('이메일 인증이 완료되었습니다.');
+        navigate('/auth');
+      }
     } catch (error) {
       setError(error.message);
     } finally {
@@ -67,6 +94,10 @@ const OTPVerification = ({ email, onVerificationSuccess, onBack }) => {
     } finally {
       setResendLoading(false);
     }
+  };
+  
+  const handleBack = () => {
+    navigate('/auth');
   };
 
   const handleChange = (e) => {
@@ -133,7 +164,7 @@ const OTPVerification = ({ email, onVerificationSuccess, onBack }) => {
               type="button"
               variant="secondary"
               fullWidth
-              onClick={onBack}
+              onClick={handleBack}
             >
               이전
             </Button>
