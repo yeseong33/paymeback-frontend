@@ -80,12 +80,18 @@ const CreateGathering = ({ isOpen, onClose, onSuccess }) => {
             value={formData.description}
             onChange={handleChange}
             placeholder="모임에 대한 간단한 설명을 입력해주세요"
-            className="input bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 
+              bg-white dark:bg-gray-800 
+              text-gray-900 dark:text-white 
+              placeholder-gray-500 dark:placeholder-gray-400
+              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 
+              focus:border-transparent
+              transition-colors duration-200"
             rows={4}
             maxLength={500}
           />
           {errors.description && (
-            <div className="form-error text-red-500 dark:text-red-400">{errors.description}</div>
+            <div className="text-sm text-red-500 dark:text-red-400 mt-1">{errors.description}</div>
           )}
           <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
             {formData.description.length}/500
@@ -98,6 +104,7 @@ const CreateGathering = ({ isOpen, onClose, onSuccess }) => {
             variant="secondary"
             fullWidth
             onClick={handleClose}
+            className="dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white"
           >
             취소
           </Button>
@@ -105,6 +112,7 @@ const CreateGathering = ({ isOpen, onClose, onSuccess }) => {
             type="submit" 
             fullWidth 
             loading={loading}
+            className="dark:bg-blue-600 dark:hover:bg-blue-500"
           >
             생성하기
           </Button>
