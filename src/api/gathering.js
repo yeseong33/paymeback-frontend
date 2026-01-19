@@ -5,8 +5,8 @@ export const gatheringAPI = {
     return api.post('/gatherings', gatheringData);
   },
 
-  getMyGatherings: () => {
-    return api.get('/gatherings/my');
+  getMyGatherings: (size = 100) => {
+    return api.get(`/gatherings/my?size=${size}`);
   },
 
   getGathering: (id) => {
@@ -17,7 +17,11 @@ export const gatheringAPI = {
     return api.post(`/gatherings/${gatheringId}/join`);
   },
 
-  getParticipatedGatherings: () => {
-    return api.get('/gatherings/participated');
+  getParticipatedGatherings: (size = 100) => {
+    return api.get(`/gatherings/participated?size=${size}`);
+  },
+
+  refreshQR: (gatheringId) => {
+    return api.post(`/gatherings/${gatheringId}/refresh-qr`);
   }
 };

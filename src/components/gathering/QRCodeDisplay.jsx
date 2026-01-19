@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
-import { Share2, Download, Copy } from 'lucide-react';
+import { Share2, Download, Copy, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { copyToClipboard, shareUrl, getRemainingTime } from '../../utils/helpers';
+import { gatheringAPI } from '../../api';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
 
-const QRCodeDisplay = ({ isOpen, onClose, gathering }) => {
+const QRCodeDisplay = ({ isOpen, onClose, gathering, onRefresh }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [remainingTime, setRemainingTime] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (gathering?.qrCode) {
@@ -79,6 +81,25 @@ const QRCodeDisplay = ({ isOpen, onClose, gathering }) => {
 
   const isExpired = remainingTime === null;
 
+  const handleRefreshQR = async () => {
+    if (!gathering?.id) return;
+
+    setRefreshing(true);
+    try {
+      const response = await gatheringAPI.refreshQR(gathering.id);
+      const updatedGathering = response.data?.data || response.data;
+      toast.success('QR 코드가 갱신되었습니다.');
+      if (onRefresh) {
+        onRefresh(updatedGathering);
+      }
+    } catch (error) {
+      console.error('QR 코드 갱신 실패:', error);
+      toast.error('QR 코드 갱신에 실패했습니다.');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="QR 코드">
       <div className="text-center">
@@ -101,11 +122,21 @@ const QRCodeDisplay = ({ isOpen, onClose, gathering }) => {
           {remainingTime && !isExpired ? (
             <div className="text-sm text-gray-600">
               <p>남은 시간: {remainingTime.minutes}분 {remainingTime.seconds}초</p>
-              <p className="text-xs mt-1">QR 코드는 30분 후 만료됩니다</p>
+              <p className="text-xs mt-1">QR 코드는 5분 후 만료됩니다</p>
             </div>
           ) : (
             <div className="text-sm text-red-500">
               <p>QR 코드가 만료되었습니다</p>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleRefreshQR}
+                loading={refreshing}
+                className="mt-2 flex items-center justify-center gap-2 mx-auto"
+              >
+                <RefreshCw size={14} />
+                QR 코드 갱신
+              </Button>
             </div>
           )}
         </div>

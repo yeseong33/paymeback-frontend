@@ -111,7 +111,7 @@ const PaymentForm = ({ gathering, onPaymentSuccess }) => {
           
           <div className="flex justify-between">
             <span className="text-gray-600">참여자</span>
-            <span>{gathering.participantCount}명</span>
+            <span>{gathering.participantCount ?? gathering.participants?.length ?? 0}명</span>
           </div>
           
           <div className="flex justify-between">

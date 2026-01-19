@@ -34,8 +34,11 @@ export const useGatheringStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await gatheringService.getGathering(id);
-      set({ currentGathering: response, loading: false });
-      return response;
+      // API 응답 구조: { success: true, data: {...} }
+      const gathering = response?.data || response;
+      console.log('getGathering response:', gathering);
+      set({ currentGathering: gathering, loading: false });
+      return gathering;
     } catch (error) {
       console.log('Failed to get gathering:', error);
       // API 에러를 그대로 전달
@@ -59,9 +62,39 @@ export const useGatheringStore = create((set, get) => ({
   getMyGatherings: async () => {
     set({ loading: true, error: null });
     try {
-      const response = await gatheringService.getMyGatherings();
-      set({ gatherings: response.content || [], loading: false });
-      return response;
+      // 내가 생성한 모임과 참여한 모임 모두 조회
+      const [myGatherings, participatedGatherings] = await Promise.all([
+        gatheringService.getMyGatherings(),
+        gatheringService.getParticipatedGatherings()
+      ]);
+
+      console.log('myGatherings response:', myGatherings);
+      console.log('participatedGatherings response:', participatedGatherings);
+
+      // API 응답 구조: { success: true, data: { content: [...] } }
+      // service에서 response.data를 반환하므로 여기서는 .data.content로 접근
+      const myContent = myGatherings?.data?.content || myGatherings?.content || [];
+      const participatedContent = participatedGatherings?.data?.content || participatedGatherings?.content || [];
+
+      console.log('myContent:', myContent);
+      console.log('participatedContent:', participatedContent);
+
+      // id 기준으로 중복 제거
+      const gatheringMap = new Map();
+      [...myContent, ...participatedContent].forEach(gathering => {
+        if (gathering && gathering.id) {
+          gatheringMap.set(gathering.id, gathering);
+        }
+      });
+
+      const allGatherings = Array.from(gatheringMap.values());
+      console.log('allGatherings:', allGatherings);
+
+      // createdAt 기준 정렬 (최신순)
+      allGatherings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      set({ gatherings: allGatherings, loading: false });
+      return { content: allGatherings };
     } catch (error) {
       console.log('Failed to fetch gatherings:', error);
       // API 에러를 그대로 전달

@@ -17,9 +17,12 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [totalAmount, setTotalAmount] = useState('');
 
+  // participantCount가 없으면 participants 배열 길이 사용
+  const participantCount = gathering?.participantCount ?? gathering?.participants?.length ?? 0;
+
   const isOwner = gathering?.owner?.email === user?.email;
-  const canRequestPayment = gathering?.status === GATHERING_STATUS.ACTIVE && 
-                           gathering?.participantCount > 0;
+  const canRequestPayment = gathering?.status === GATHERING_STATUS.ACTIVE &&
+                           participantCount > 0;
 
   const handlePaymentRequest = async (e) => {
     e.preventDefault();
@@ -44,13 +47,13 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
   const getStatusLabel = (status) => {
     switch (status) {
       case GATHERING_STATUS.ACTIVE:
-        return '모집 중';
+        return '👥';
       case GATHERING_STATUS.PAYMENT_REQUESTED:
-        return '결제 요청됨';
+        return '💰';
       case GATHERING_STATUS.COMPLETED:
-        return '완료';
+        return '✅';
       case GATHERING_STATUS.CLOSED:
-        return '종료';
+        return '🔒';
       default:
         return status;
     }
@@ -78,7 +81,7 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
                   <div className="grid grid-cols-2 gap-4 text-sm text-gray-900 dark:text-white">
             <div className="flex items-center gap-2">
               <Users size={16} />
-              <span>참여자 {gathering.participantCount}명</span>
+              <span>참여자 {participantCount}명</span>
             </div>
             
             <div className="flex items-center gap-2">
@@ -178,10 +181,11 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
       </div>
 
       {/* QR 코드 모달 */}
-      <QRCodeDisplay 
+      <QRCodeDisplay
         isOpen={showQR}
         onClose={() => setShowQR(false)}
         gathering={gathering}
+        onRefresh={onUpdate}
       />
 
       {/* 결제 요청 모달 */}
@@ -206,12 +210,12 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
               required
             />
             
-            {totalAmount && gathering.participantCount > 0 && (
+            {totalAmount && participantCount > 0 && (
               <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="text-sm">
-                  <p className="text-gray-600 dark:text-gray-300">참여자: {gathering.participantCount}명</p>
+                  <p className="text-gray-600 dark:text-gray-300">참여자: {participantCount}명</p>
                   <p className="font-semibold text-gray-900 dark:text-white">
-                    개인 분담금: {formatCurrency(parseFloat(totalAmount) / gathering.participantCount)}
+                    개인 분담금: {formatCurrency(parseFloat(totalAmount) / participantCount)}
                   </p>
                 </div>
               </div>

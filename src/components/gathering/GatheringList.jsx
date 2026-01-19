@@ -103,7 +103,7 @@ const GatheringList = ({ gatherings, loading }) => {
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1">
                 <Users size={16} />
-                <span>{gathering.participantCount}명</span>
+                <span>{gathering.participantCount ?? gathering.participants?.length ?? 0}명</span>
               </div>
               
               {gathering.totalAmount && (
