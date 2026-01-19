@@ -25,4 +25,9 @@ export const gatheringService = {
     const response = await gatheringAPI.getParticipatedGatherings();
     return response.data;
   },
+
+  async updateGathering(gatheringId, updateData) {
+    const response = await gatheringAPI.update(gatheringId, updateData);
+    return response.data;
+  },
 };

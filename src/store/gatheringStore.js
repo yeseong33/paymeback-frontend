@@ -115,6 +115,20 @@ export const useGatheringStore = create((set, get) => ({
     }
   },
 
+  updateGathering: async (gatheringId, updateData) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await gatheringService.updateGathering(gatheringId, updateData);
+      const gathering = response?.data || response;
+      set({ currentGathering: gathering, loading: false });
+      return gathering;
+    } catch (error) {
+      console.log('Failed to update gathering:', error);
+      set({ error: error.message, loading: false });
+      throw error;
+    }
+  },
+
   refreshGathering: async () => {
     const current = get().currentGathering;
     if (current?.id) {

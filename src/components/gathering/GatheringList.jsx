@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, Clock, CreditCard } from 'lucide-react';
-import { formatDate, formatCurrency, getStatusColor } from '../../utils/helpers';
+import { Users, CreditCard } from 'lucide-react';
+import { formatCurrency, formatSmartDate, getStatusColor } from '../../utils/helpers';
 import { GATHERING_STATUS, PAYMENT_STATUS_LABELS } from '../../utils/constants';
 
 const GatheringList = ({ gatherings, loading }) => {
@@ -114,10 +114,22 @@ const GatheringList = ({ gatherings, loading }) => {
               )}
             </div>
 
-            <div className="flex items-center gap-1">
-              <Clock size={16} />
-              <span>{formatDate(gathering.createdAt)}</span>
-            </div>
+            {(() => {
+              const dateInfo = formatSmartDate(gathering.scheduledAt || gathering.createdAt);
+              if (!dateInfo) return null;
+              return (
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded">
+                    <span className="text-blue-600 dark:text-blue-400 font-medium">
+                      {dateInfo.month}/{dateInfo.day}
+                    </span>
+                    <span className="text-blue-500 dark:text-blue-300 text-xs">
+                      {dateInfo.timeString}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {gathering.owner && (

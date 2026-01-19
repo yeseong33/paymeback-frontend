@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { Users, Clock, QrCode, CreditCard, Settings } from 'lucide-react';
+import { Users, QrCode, CreditCard, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useGathering } from '../../hooks/useGathering';
 import { useAuth } from '../../hooks/useAuth';
-import { formatDate, formatCurrency, getStatusColor } from '../../utils/helpers';
+import { formatCurrency, getStatusColor } from '../../utils/helpers';
 import { GATHERING_STATUS } from '../../utils/constants';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Modal from '../common/Modal';
+import DateTimeDisplay from '../common/DateTimeDisplay';
 import QRCodeDisplay from './QRCodeDisplay';
 
 const GatheringDetail = ({ gathering, onUpdate }) => {
   const { user } = useAuth();
-  const { createPaymentRequest, loading } = useGathering();
+  const { createPaymentRequest, updateGathering, loading } = useGathering();
   const [showQR, setShowQR] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [totalAmount, setTotalAmount] = useState('');
@@ -78,22 +79,29 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
           </span>
         </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-900 dark:text-white">
+          <div className="flex items-center gap-4 text-sm text-gray-900 dark:text-white mb-4">
             <div className="flex items-center gap-2">
               <Users size={16} />
               <span>참여자 {participantCount}명</span>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <Clock size={16} />
-              <span>{formatDate(gathering.createdAt)}</span>
-            </div>
-            
-            <div className="col-span-2">
-              <span className="text-gray-500 dark:text-gray-400">
-                방장: {gathering.owner?.name || '알 수 없음'}
-              </span>
-            </div>
+            <span className="text-gray-300 dark:text-gray-600">|</span>
+            <span className="text-gray-500 dark:text-gray-400">
+              방장: {gathering.owner?.name || '알 수 없음'}
+            </span>
+          </div>
+
+          {/* 날짜/시간 표시 */}
+          <div className="border-t border-gray-100 dark:border-gray-700 pt-4 -mx-3">
+            <DateTimeDisplay
+              dateTime={gathering.scheduledAt || gathering.createdAt}
+              editable={isOwner}
+              label="모임 일시"
+              onDateChange={async (newDate) => {
+                const scheduledAt = newDate.toISOString().slice(0, 19);
+                const updatedGathering = await updateGathering(gathering.id, { scheduledAt });
+                onUpdate(updatedGathering);
+              }}
+            />
           </div>
 
         {gathering.totalAmount && (

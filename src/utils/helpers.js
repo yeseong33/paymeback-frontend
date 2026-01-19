@@ -31,15 +31,50 @@ export const formatRelativeTime = (dateString) => {
   const date = new Date(dateString);
   const now = new Date();
   const diff = now - date;
-  
+
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-  
+
   if (minutes < 1) return '방금 전';
   if (minutes < 60) return `${minutes}분 전`;
   if (hours < 24) return `${hours}시간 전`;
   return `${days}일 전`;
+};
+
+export const formatSmartDate = (dateString) => {
+  if (!dateString) return null;
+
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return null;
+
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+
+  const days = ['일', '월', '화', '수', '목', '금', '토'];
+  const dayName = days[date.getDay()];
+
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? '오후' : '오전';
+  const displayHours = hours % 12 || 12;
+  const timeString = `${ampm} ${displayHours}:${minutes.toString().padStart(2, '0')}`;
+
+  return {
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+    year: date.getFullYear(),
+    dayName,
+    timeString,
+    isToday,
+    isYesterday,
+    relativeText: isToday ? '오늘' : isYesterday ? '어제' : null,
+    fullDate: date,
+  };
 };
 
 export const getStatusColor = (status) => {

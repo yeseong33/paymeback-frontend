@@ -12,6 +12,7 @@ export const useGathering = () => {
     joinGathering,
     getMyGatherings,
     createPaymentRequest,
+    updateGathering,
     refreshGathering,
     clearCurrentGathering,
   } = useGatheringStore();
@@ -27,6 +28,7 @@ export const useGathering = () => {
     joinGathering,
     getMyGatherings,
     createPaymentRequest,
+    updateGathering,
     refreshGathering,
     clearCurrentGathering,
   };

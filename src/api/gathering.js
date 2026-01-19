@@ -23,5 +23,9 @@ export const gatheringAPI = {
 
   refreshQR: (gatheringId) => {
     return api.post(`/gatherings/${gatheringId}/refresh-qr`);
+  },
+
+  update: (gatheringId, updateData) => {
+    return api.patch(`/gatherings/${gatheringId}`, updateData);
   }
 };
