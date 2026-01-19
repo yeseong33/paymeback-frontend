@@ -8,17 +8,20 @@ import Input from '../common/Input';
 import ThemeToggle from '../common/ThemeToggle';
 
 
-const OTPVerification = ({ onVerificationSuccess }) => {
+const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMode, password: propPassword, onBack }) => {
   const { verifyOTP, resendOTP, signIn } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  
-  const { email, mode } = location.state || {};
-  
+
+  // props 우선, 없으면 location.state에서 가져옴
+  const email = propEmail || location.state?.email;
+  const mode = propMode || location.state?.mode;
+  const password = propPassword || location.state?.password;
+
   useEffect(() => {
-    console.log('OTPVerification mounted with state:', location.state);
-  }, [location.state]);
-  
+    console.log('OTPVerification mounted with:', { email, mode, propEmail, propMode });
+  }, [email, mode, propEmail, propMode]);
+
   useEffect(() => {
     if (!email || !mode) {
       navigate('/auth');
@@ -68,13 +71,13 @@ const OTPVerification = ({ onVerificationSuccess }) => {
         // 로그인 시 OTP 인증
         await verifyOTP(verificationData);
         // 인증 성공 후 다시 로그인 시도
-        await signIn({ email, password: location.state.password });
+        await signIn({ email, password });
         onVerificationSuccess();
       } else {
         // 회원가입 시 OTP 인증
         await verifyOTP(verificationData);
         toast.success('이메일 인증이 완료되었습니다.\n다시 로그인 해주세요.');
-        navigate('/auth');
+        onVerificationSuccess();
       }
     } catch (error) {
       setError(error.message);

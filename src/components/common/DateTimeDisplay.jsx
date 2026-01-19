@@ -141,24 +141,21 @@ const DateTimeDisplay = ({
 
 // DateTimePicker 컴포넌트
 const DateTimePicker = ({ isOpen, onClose, initialDate, onSave }) => {
-  const [selectedDate, setSelectedDate] = useState(initialDate || new Date());
-  const [viewDate, setViewDate] = useState(initialDate || new Date());
-  const [selectedHour, setSelectedHour] = useState(
-    initialDate ? initialDate.getHours() : 12
-  );
-  const [selectedMinute, setSelectedMinute] = useState(
-    initialDate ? initialDate.getMinutes() : 0
-  );
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [viewDate, setViewDate] = useState(new Date());
+  const [selectedHour, setSelectedHour] = useState(12);
+  const [selectedMinute, setSelectedMinute] = useState(0);
 
-  // 모달이 열릴 때 initialDate로 상태 리셋
+  // 모달이 열릴 때 오늘 날짜 기준으로 초기화 (초기 날짜는 표시만)
   useEffect(() => {
-    if (isOpen && initialDate) {
-      setSelectedDate(initialDate);
-      setViewDate(initialDate);
-      setSelectedHour(initialDate.getHours());
-      setSelectedMinute(initialDate.getMinutes());
+    if (isOpen) {
+      const today = new Date();
+      setSelectedDate(null); // 선택 초기화
+      setViewDate(today); // 오늘 날짜 기준으로 달력 표시
+      setSelectedHour(initialDate ? initialDate.getHours() : 12);
+      setSelectedMinute(initialDate ? initialDate.getMinutes() : 0);
     }
-  }, [isOpen, initialDate]);
+  }, [isOpen]);
 
   const daysInMonth = new Date(
     viewDate.getFullYear(),
@@ -189,10 +186,12 @@ const DateTimePicker = ({ isOpen, onClose, initialDate, onSave }) => {
   };
 
   const handleSave = () => {
+    // 선택된 날짜가 없으면 초기 날짜 또는 오늘 사용
+    const baseDate = selectedDate || initialDate || new Date();
     const finalDate = new Date(
-      selectedDate.getFullYear(),
-      selectedDate.getMonth(),
-      selectedDate.getDate(),
+      baseDate.getFullYear(),
+      baseDate.getMonth(),
+      baseDate.getDate(),
       selectedHour,
       selectedMinute
     );
@@ -200,6 +199,7 @@ const DateTimePicker = ({ isOpen, onClose, initialDate, onSave }) => {
   };
 
   const isSelectedDay = (day) => {
+    if (!selectedDate) return false;
     return (
       selectedDate.getDate() === day &&
       selectedDate.getMonth() === viewDate.getMonth() &&
@@ -213,6 +213,15 @@ const DateTimePicker = ({ isOpen, onClose, initialDate, onSave }) => {
       today.getDate() === day &&
       today.getMonth() === viewDate.getMonth() &&
       today.getFullYear() === viewDate.getFullYear()
+    );
+  };
+
+  const isInitialDay = (day) => {
+    if (!initialDate) return false;
+    return (
+      initialDate.getDate() === day &&
+      initialDate.getMonth() === viewDate.getMonth() &&
+      initialDate.getFullYear() === viewDate.getFullYear()
     );
   };
 
@@ -260,21 +269,28 @@ const DateTimePicker = ({ isOpen, onClose, initialDate, onSave }) => {
           {/* 날짜 셀 */}
           {Array.from({ length: daysInMonth }, (_, i) => {
             const day = i + 1;
+            const selected = isSelectedDay(day);
+            const today = isToday(day);
+            const initial = isInitialDay(day);
             return (
               <button
                 key={day}
                 onClick={() => handleSelectDay(day)}
                 className={`
-                  h-10 rounded-lg text-sm font-medium transition-all
-                  ${isSelectedDay(day)
+                  h-10 rounded-lg text-sm font-medium transition-all relative
+                  ${selected
                     ? 'bg-blue-500 text-white shadow-sm'
-                    : isToday(day)
+                    : today
                       ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
                       : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                   }
                 `}
               >
                 {day}
+                {/* 초기 날짜 표시 (작은 점) */}
+                {initial && !selected && (
+                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-gray-400 dark:bg-gray-500 rounded-full" />
+                )}
               </button>
             );
           })}

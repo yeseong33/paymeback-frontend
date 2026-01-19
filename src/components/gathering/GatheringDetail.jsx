@@ -3,7 +3,7 @@ import { Users, QrCode, CreditCard, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useGathering } from '../../hooks/useGathering';
 import { useAuth } from '../../hooks/useAuth';
-import { formatCurrency, getStatusColor } from '../../utils/helpers';
+import { formatCurrency, getStatusColor, toEpochMillis } from '../../utils/helpers';
 import { GATHERING_STATUS } from '../../utils/constants';
 import Button from '../common/Button';
 import Input from '../common/Input';
@@ -97,7 +97,7 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
               editable={isOwner}
               label="모임 일시"
               onDateChange={async (newDate) => {
-                const scheduledAt = newDate.toISOString().slice(0, 19);
+                const scheduledAt = toEpochMillis(newDate);
                 const updatedGathering = await updateGathering(gathering.id, { scheduledAt });
                 onUpdate(updatedGathering);
               }}
