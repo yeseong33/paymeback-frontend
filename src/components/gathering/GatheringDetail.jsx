@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { Users, QrCode, CreditCard, Settings } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Users, QrCode, CreditCard, Settings, Receipt } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useGathering } from '../../hooks/useGathering';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency, getStatusColor, toEpochMillis } from '../../utils/helpers';
 import { GATHERING_STATUS } from '../../utils/constants';
+import { paymentAPI } from '../../api';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Modal from '../common/Modal';
@@ -17,6 +18,32 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
   const [showQR, setShowQR] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [totalAmount, setTotalAmount] = useState('');
+  // TODO: API 연동 시 아래 모킹 데이터 제거
+  const [payments] = useState([
+    { id: 1, amount: 25000, status: 'COMPLETED', completedAt: Date.now() - 3600000 },
+    { id: 2, amount: 25000, status: 'PENDING', createdAt: Date.now() - 1800000 },
+    { id: 3, amount: 25000, status: 'FAILED', createdAt: Date.now() - 7200000 },
+  ]);
+
+  const formatPaymentStatus = (status) => {
+    switch (status) {
+      case 'COMPLETED': return { label: '완료', color: 'text-green-600 dark:text-green-400' };
+      case 'PENDING': return { label: '대기', color: 'text-yellow-600 dark:text-yellow-400' };
+      case 'FAILED': return { label: '실패', color: 'text-red-600 dark:text-red-400' };
+      default: return { label: status, color: 'text-gray-600 dark:text-gray-400' };
+    }
+  };
+
+  const formatDateTime = (timestamp) => {
+    if (!timestamp) return '-';
+    const date = new Date(timestamp);
+    return date.toLocaleString('ko-KR', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   // participantCount가 없으면 participants 배열 길이 사용
   const participantCount = gathering?.participantCount ?? gathering?.participants?.length ?? 0;
@@ -74,9 +101,16 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
             )}
           </div>
           
-          <span className={`status-badge ${getStatusColor(gathering.status)} ml-3`}>
-            {getStatusLabel(gathering.status)}
-          </span>
+          {isOwner && (
+            <button
+              onClick={() => setShowQR(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ml-3 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-primary-800"
+              title="모임 관리"
+            >
+              <QrCode size={16} />
+              <span className="text-sm font-medium">모임 관리</span>
+            </button>
+          )}
         </div>
 
           <div className="flex items-center gap-4 text-sm text-gray-900 dark:text-white mb-4">
@@ -122,35 +156,49 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
         )}
       </div>
 
-      {/* 방장 액션 */}
-      {isOwner && (
+      {/* 방장 액션 - 결제 요청 */}
+      {isOwner && canRequestPayment && (
+        <div className="card">
+          <Button
+            fullWidth
+            onClick={() => setShowPaymentForm(true)}
+            className="flex items-center justify-center gap-2"
+          >
+            <CreditCard size={18} />
+            결제 요청하기
+          </Button>
+        </div>
+      )}
+
+      {/* 결제 내역 */}
+      {payments.length > 0 && (
         <div className="card">
           <h3 className="font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
-            <Settings size={18} />
-            모임 관리
+            <Receipt size={18} />
+            결제 내역
           </h3>
-          
-          <div className="space-y-3">
-            <Button 
-              variant="secondary" 
-              fullWidth
-              onClick={() => setShowQR(true)}
-              className="flex items-center justify-center gap-2"
-            >
-              <QrCode size={18} />
-              QR 코드 보기
-            </Button>
-
-            {canRequestPayment && (
-              <Button 
-                fullWidth
-                onClick={() => setShowPaymentForm(true)}
-                className="flex items-center justify-center gap-2"
-              >
-                <CreditCard size={18} />
-                결제 요청하기
-              </Button>
-            )}
+          <div className="space-y-2">
+            {payments.map((payment) => {
+              const statusInfo = formatPaymentStatus(payment.status);
+              return (
+                <div
+                  key={payment.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {formatCurrency(payment.amount)}
+                    </span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {formatDateTime(payment.completedAt || payment.createdAt)}
+                    </span>
+                  </div>
+                  <span className={`text-sm font-medium ${statusInfo.color}`}>
+                    {statusInfo.label}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

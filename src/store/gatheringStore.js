@@ -20,8 +20,11 @@ export const useGatheringStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await gatheringService.createGathering(gatheringData);
-      set({ currentGathering: response, loading: false });
-      return response;
+      // API 응답 구조: { success: true, data: {...} }
+      const gathering = response?.data || response;
+      console.log('createGathering response:', gathering);
+      set({ currentGathering: gathering, loading: false });
+      return gathering;
     } catch (error) {
       console.log('Failed to create gathering:', error);
       // API 에러를 그대로 전달
@@ -51,8 +54,11 @@ export const useGatheringStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await gatheringService.joinGathering(qrCode);
-      set({ currentGathering: response, loading: false });
-      return response;
+      // API 응답 구조: { success: true, data: {...} }
+      const gathering = response?.data || response;
+      console.log('joinGathering response:', gathering);
+      set({ currentGathering: gathering, loading: false });
+      return gathering;
     } catch (error) {
       set({ error: error.message, loading: false });
       throw error;
@@ -107,8 +113,11 @@ export const useGatheringStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await gatheringService.createPaymentRequest(gatheringId, totalAmount);
-      set({ currentGathering: response, loading: false });
-      return response;
+      // API 응답 구조: { success: true, data: {...} }
+      const gathering = response?.data || response;
+      console.log('createPaymentRequest response:', gathering);
+      set({ currentGathering: gathering, loading: false });
+      return gathering;
     } catch (error) {
       set({ error: error.message, loading: false });
       throw error;

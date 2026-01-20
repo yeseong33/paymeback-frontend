@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -29,6 +29,7 @@ const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMo
   }, [email, mode, navigate]);
   const [otpCode, setOtpCode] = useState('');
   const [error, setError] = useState('');
+  const [shake, setShake] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [countdown, setCountdown] = useState(300); // 5 minutes
@@ -53,11 +54,23 @@ const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMo
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const triggerShake = () => {
+    setShake(true);
+    setTimeout(() => setShake(false), 500);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (!otpCode) {
+      setError('인증 코드를 입력해주세요.');
+      triggerShake();
+      return;
+    }
+
     if (!validateOTP(otpCode)) {
       setError('6자리 숫자를 입력해주세요.');
+      triggerShake();
       return;
     }
     
@@ -80,33 +93,56 @@ const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMo
         onVerificationSuccess();
       }
     } catch (error) {
+      // U001: 유저가 없음 = 회원가입 실패
+      if (error.code === 'U001') {
+        toast.error('회원가입에 실패했습니다. 다시 시도해주세요.');
+        navigate('/auth', { state: { view: 'signup' } });
+        return;
+      }
       setError(error.message);
+      triggerShake();
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResend = async () => {
-    setResendLoading(true);
-    try {
-      await resendOTP(email);
-      toast.success('인증 코드가 재발송되었습니다.');
-      setCountdown(300);
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setResendLoading(false);
-    }
+  const handleResend = () => {
+    // resendOTP 비동기 호출 (응답 기다리지 않음)
+    resendOTP(email)
+      .then(() => console.log('OTP resent successfully'))
+      .catch((error) => {
+        // U001: 유저가 없음 = 회원가입 실패
+        if (error.code === 'U001') {
+          toast.error('회원가입에 실패했습니다. 다시 시도해주세요.');
+          navigate('/auth', { state: { view: 'signup' } });
+          return;
+        }
+        toast.error(error.message || '재발송에 실패했습니다.');
+      });
+
+    // 즉시 UI 피드백
+    toast.success('인증 코드를 재발송 중입니다.');
+    setCountdown(300);
   };
   
   const handleBack = () => {
     navigate('/auth');
   };
 
+  const formRef = useRef(null);
+  const [focusedField, setFocusedField] = useState(false);
+
   const handleChange = (e) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, 6);
     setOtpCode(value);
     if (error) setError('');
+
+    // 6자리 입력 완료 시 자동 제출
+    if (value.length === 6 && countdown > 0) {
+      setTimeout(() => {
+        formRef.current?.requestSubmit();
+      }, 300);
+    }
   };
 
   return (
@@ -126,19 +162,25 @@ const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMo
           </p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <Input
-            label="인증 코드"
-            type="text"
-            inputMode="numeric"
-            value={otpCode}
-            onChange={handleChange}
-            placeholder="123456"
-            error={error}
-            maxLength={6}
-            className="text-center text-2xl tracking-widest"
-            required
-          />
+        <form ref={formRef} onSubmit={handleSubmit} noValidate>
+          <div className={`transition-all duration-300 ease-in-out ${focusedField ? 'scale-[1.02]' : ''}`}>
+            <Input
+              label="인증 코드"
+              type="text"
+              inputMode="numeric"
+              value={otpCode}
+              onChange={handleChange}
+              onFocus={() => setFocusedField(true)}
+              onBlur={() => setFocusedField(false)}
+              placeholder="123456"
+              error={error}
+              shake={shake}
+              maxLength={6}
+              className={`text-center text-2xl tracking-widest transition-all duration-300 ${
+                focusedField ? 'ring-2 ring-primary-500/20 shadow-lg' : ''
+              }`}
+            />
+          </div>
 
           <div className="text-center mb-4">
             {countdown > 0 ? (

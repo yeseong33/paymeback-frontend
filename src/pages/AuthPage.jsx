@@ -62,7 +62,7 @@ const AuthPage = () => {
           onSignupSuccess={handleSignupSuccess}
           onSwitchToLogin={handleSwitchToLogin}
         />
-      )}
+      )}-=
       
       {currentView === 'otp' && (
         <OTPVerification 
@@ -77,20 +77,6 @@ const AuthPage = () => {
         />
       )}
 
-      <AlertModal
-        isOpen={showOTPAlert}
-        onClose={() => {
-          setShowOTPAlert(false);
-          if (location.state?.mode === 'signin') {
-            navigate('/main');
-          }
-        }}
-        message={
-          location.state?.mode === 'signin'
-            ? <>이메일 인증이 완료되었습니다.<br/>다시 로그인해주세요.</>
-            : "이메일 인증이 완료되었습니다."
-        }
-      />
     </div>
   );
 };

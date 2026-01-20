@@ -103,11 +103,6 @@ const QRCodeDisplay = ({ isOpen, onClose, gathering, onRefresh }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="QR 코드">
       <div className="text-center">
-        <div className="mb-4">
-          <h3 className="font-semibold text-lg">{gathering?.title}</h3>
-          <p className="text-gray-600 text-sm">{gathering?.description}</p>
-        </div>
-
         {qrCodeUrl && (
           <div className="bg-white p-4 rounded-lg border-2 border-gray-100 mb-4">
             <img 

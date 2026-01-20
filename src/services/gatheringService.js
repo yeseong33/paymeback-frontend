@@ -30,4 +30,9 @@ export const gatheringService = {
     const response = await gatheringAPI.update(gatheringId, updateData);
     return response.data;
   },
+
+  async createPaymentRequest(gatheringId, totalAmount) {
+    const response = await gatheringAPI.createPaymentRequest(gatheringId, totalAmount);
+    return response.data;
+  },
 };

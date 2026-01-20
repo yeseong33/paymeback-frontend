@@ -19,10 +19,14 @@ const GatheringPage = () => {
   const [activeTab, setActiveTab] = useState('details');
 
   useEffect(() => {
-    if (id) {
+    // id가 유효한 값인지 확인 (undefined 문자열이나 빈 값 제외)
+    if (id && id !== 'undefined' && id !== 'null') {
       loadGathering();
+    } else if (id === 'undefined' || id === 'null') {
+      // 잘못된 id로 접근 시 홈으로 리다이렉트
+      navigate('/main');
     }
-    
+
     return () => {
       clearCurrentGathering();
     };

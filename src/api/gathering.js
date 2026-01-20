@@ -27,5 +27,9 @@ export const gatheringAPI = {
 
   update: (gatheringId, updateData) => {
     return api.patch(`/gatherings/${gatheringId}`, updateData);
+  },
+
+  createPaymentRequest: (gatheringId, totalAmount) => {
+    return api.post(`/gatherings/${gatheringId}/payment-request`, { totalAmount });
   }
 };

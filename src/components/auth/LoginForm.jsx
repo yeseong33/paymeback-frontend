@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -13,20 +13,39 @@ const LoginForm = ({ onSwitchToSignup }) => {
     password: '',
   });
   const [errors, setErrors] = useState({});
+  const [shakeFields, setShakeFields] = useState({});
   const [loading, setLoading] = useState(false);
+  const [focusedField, setFocusedField] = useState(null);
+
+  // Input refs for focus management
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
 
   const validateForm = () => {
     const newErrors = {};
-    
-    if (!validateEmail(formData.email)) {
+    const newShakeFields = {};
+
+    if (!formData.email) {
+      newErrors.email = '이메일을 입력해주세요.';
+      newShakeFields.email = true;
+    } else if (!validateEmail(formData.email)) {
       newErrors.email = '올바른 이메일 주소를 입력해주세요.';
+      newShakeFields.email = true;
     }
-    
+
     if (!formData.password) {
       newErrors.password = '비밀번호를 입력해주세요.';
+      newShakeFields.password = true;
     }
-    
+
     setErrors(newErrors);
+    setShakeFields(newShakeFields);
+
+    // shake 애니메이션 후 상태 초기화
+    if (Object.keys(newShakeFields).length > 0) {
+      setTimeout(() => setShakeFields({}), 500);
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -100,10 +119,27 @@ const LoginForm = ({ onSwitchToSignup }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
+
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
+  };
+
+  const handleKeyDown = (e, nextRef) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (nextRef?.current) {
+        nextRef.current.focus();
+      }
+    }
+  };
+
+  const handleFocus = (fieldName) => {
+    setFocusedField(fieldName);
+  };
+
+  const handleBlur = () => {
+    setFocusedField(null);
   };
 
   return (
@@ -125,21 +161,30 @@ const LoginForm = ({ onSwitchToSignup }) => {
         </div>
 
         <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" noValidate>
             <div>
               <label htmlFor="email" className="block text-sm/6 font-medium text-gray-900 dark:text-gray-200">
                 Email address
               </label>
               <div className="mt-2">
                 <input
+                  ref={emailRef}
                   id="email"
                   name="email"
                   type="email"
-                  required
                   autoComplete="email"
                   value={formData.email}
                   onChange={handleChange}
-                        className="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 sm:text-sm/6 transition-colors duration-200"
+                  onKeyDown={(e) => handleKeyDown(e, passwordRef)}
+                  onFocus={() => handleFocus('email')}
+                  onBlur={handleBlur}
+                  className={`block w-full rounded-md border bg-white dark:bg-gray-800 px-3 py-1.5 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 sm:text-sm/6 transition-all duration-300 ease-in-out ${
+                    errors.email
+                      ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20'
+                      : focusedField === 'email'
+                        ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/20 dark:ring-primary-400/20 scale-[1.02] shadow-lg'
+                        : 'border-gray-300 dark:border-gray-600'
+                  } ${shakeFields.email ? 'animate-shake' : ''}`}
                 />
                 {errors.email && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>}
               </div>
@@ -158,14 +203,22 @@ const LoginForm = ({ onSwitchToSignup }) => {
               </div>
               <div className="mt-2">
                 <input
+                  ref={passwordRef}
                   id="password"
                   name="password"
                   type="password"
-                  required
                   autoComplete="current-password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-1.5 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:border-primary-500 dark:focus:border-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 sm:text-sm/6 transition-colors duration-200"
+                  onFocus={() => handleFocus('password')}
+                  onBlur={handleBlur}
+                  className={`block w-full rounded-md border bg-white dark:bg-gray-800 px-3 py-1.5 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 sm:text-sm/6 transition-all duration-300 ease-in-out ${
+                    errors.password
+                      ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20'
+                      : focusedField === 'password'
+                        ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/20 dark:ring-primary-400/20 scale-[1.02] shadow-lg'
+                        : 'border-gray-300 dark:border-gray-600'
+                  } ${shakeFields.password ? 'animate-shake' : ''}`}
                 />
                 {errors.password && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>}
               </div>

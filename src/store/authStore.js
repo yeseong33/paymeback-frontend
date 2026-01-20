@@ -99,32 +99,25 @@ export const useAuthStore = create((set, get) => ({
       // OTP 인증이 필요한 경우 (에러로 받은 경우)
       if (error.code === 'U004') {
         console.log('Received U004 error, credentials:', credentials);
-        
-        // OTP 코드 자동 발송 (먼저 시도)
-        try {
-          console.log('Attempting to send OTP to:', credentials.email);
-          await authService.resendOTP(credentials.email);
-          console.log('Successfully sent OTP');
-          
-          // 성공 시 상태 업데이트
-          set({
-            needsOTPVerification: true,
-            pendingCredentials: credentials,
-            isAuthenticated: false,
-            user: null,
-            loading: false
-          });
-          
-          // 성공 메시지 반환
-          return {
-            message: '인증 코드가 발송되었습니다. 이메일을 확인해주세요.',
-            requiresOTP: true
-          };
-        } catch (resendError) {
-          console.error('Failed to send OTP:', resendError);
-          set({ loading: false });
-          throw resendError;
-        }
+
+        // OTP 코드 비동기 발송 (응답을 기다리지 않음)
+        authService.resendOTP(credentials.email)
+          .then(() => console.log('Successfully sent OTP'))
+          .catch((resendError) => console.error('Failed to send OTP:', resendError));
+
+        // 즉시 상태 업데이트 및 OTP 페이지로 이동
+        set({
+          needsOTPVerification: true,
+          pendingCredentials: credentials,
+          isAuthenticated: false,
+          user: null,
+          loading: false
+        });
+
+        return {
+          message: '인증 코드가 발송되었습니다. 이메일을 확인해주세요.',
+          requiresOTP: true
+        };
       }
       
       // 기타 에러
