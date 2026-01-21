@@ -6,6 +6,7 @@ import AuthPage from './pages/AuthPage';
 import MainPage from './pages/MainPage';
 import GatheringPage from './pages/GatheringPage';
 import PaymentPage from './pages/PaymentPage';
+import ProfilePage from './pages/ProfilePage';
 import Loading from './components/common/Loading';
 
 function App() {
@@ -75,9 +76,13 @@ function App() {
           path="/gathering/:id" 
           element={user ? <GatheringPage /> : <Navigate to="/auth" replace />} 
         />
-        <Route 
-          path="/payment/:gatheringId" 
-          element={user ? <PaymentPage /> : <Navigate to="/auth" replace />} 
+        <Route
+          path="/payment/:gatheringId"
+          element={user ? <PaymentPage /> : <Navigate to="/auth" replace />}
+        />
+        <Route
+          path="/profile"
+          element={user ? <ProfilePage /> : <Navigate to="/auth" replace />}
         />
         <Route path="/" element={<Navigate to={user ? "/main" : "/auth"} replace />} />
         <Route path="*" element={<Navigate to={user ? "/main" : "/auth"} replace />} />

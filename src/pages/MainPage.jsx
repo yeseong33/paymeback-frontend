@@ -48,9 +48,7 @@ const MainPage = () => {
 
   return (
     <div className="page">
-      <Header 
-        showLogout={true}
-      />
+      <Header showProfile={true} />
       
       <div className="page-content">
         {/* 빠른 액션 버튼 */}

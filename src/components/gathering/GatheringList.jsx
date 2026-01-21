@@ -115,7 +115,7 @@ const GatheringList = ({ gatherings, loading }) => {
             </div>
 
             {(() => {
-              const dateInfo = formatSmartDate(gathering.scheduledAt || gathering.createdAt);
+              const dateInfo = formatSmartDate(gathering.startAt || gathering.createdAt);
               if (!dateInfo) return null;
               return (
                 <div className="flex items-center gap-2">

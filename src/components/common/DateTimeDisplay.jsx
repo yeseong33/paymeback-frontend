@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Pencil, Check, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { formatSmartDate, formatRelativeTime } from '../../utils/helpers';
+import { formatSmartDate } from '../../utils/helpers';
 import Modal from './Modal';
 import Button from './Button';
 
@@ -11,9 +11,7 @@ const DateTimeDisplay = ({
   label = "모임 일시"
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
 
   const dateInfo = useMemo(() => formatSmartDate(dateTime), [dateTime]);
 
@@ -31,8 +29,6 @@ const DateTimeDisplay = ({
     setIsSaving(true);
     try {
       await onDateChange(newDate);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 2000);
       setIsEditing(false);
     } catch (error) {
       console.error('날짜 저장 실패:', error);
@@ -41,21 +37,15 @@ const DateTimeDisplay = ({
     }
   };
 
-  const relativeTime = formatRelativeTime(dateTime);
-
   return (
     <>
       <div
         className={`
-          group relative flex items-center gap-3 p-3 rounded-xl transition-all duration-200
-          ${editable ? 'cursor-pointer' : ''}
-          ${isHovered && editable ? 'bg-gray-50 dark:bg-gray-800/50' : 'bg-transparent'}
+          relative flex items-center gap-3 p-3 rounded-xl transition-colors
+          ${editable ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50' : ''}
         `}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         onClick={() => editable && setIsEditing(true)}
         role={editable ? "button" : undefined}
-        aria-label={editable ? `${label} 수정: ${dateInfo.month}월 ${dateInfo.day}일 ${dateInfo.timeString}` : undefined}
         tabIndex={editable ? 0 : undefined}
         onKeyDown={(e) => {
           if (editable && (e.key === 'Enter' || e.key === ' ')) {
@@ -65,58 +55,32 @@ const DateTimeDisplay = ({
         }}
       >
         {/* 캘린더 뱃지 */}
-        <div className="flex-shrink-0 w-14 h-16 bg-gradient-to-b from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-lg shadow-sm overflow-hidden">
-          <div className="h-5 bg-blue-600 dark:bg-blue-700 flex items-center justify-center">
-            <span className="text-[10px] font-medium text-blue-100">
+        <div className="flex-shrink-0 w-12 h-14 bg-gradient-to-b from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 rounded-lg shadow-sm overflow-hidden">
+          <div className="h-4 bg-blue-600 dark:bg-blue-700 flex items-center justify-center">
+            <span className="text-[9px] font-medium text-blue-100">
               {dateInfo.month}월
             </span>
           </div>
-          <div className="h-11 bg-white dark:bg-gray-800 flex items-center justify-center">
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
+          <div className="h-10 bg-white dark:bg-gray-800 flex items-center justify-center">
+            <span className="text-lg font-bold text-gray-900 dark:text-white">
               {dateInfo.day}
             </span>
           </div>
         </div>
 
-        {/* 시간 정보 */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-900 dark:text-white">
-              {dateInfo.relativeText || `${dateInfo.month}월 ${dateInfo.day}일`}
-            </span>
-            <span className="text-gray-400 dark:text-gray-500">·</span>
-            <span className="text-gray-600 dark:text-gray-300">
-              {dateInfo.dayName}요일
-            </span>
-          </div>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm text-gray-900 dark:text-white font-medium">
-              {dateInfo.timeString}
-            </span>
-            {showSuccess ? (
-              <span className="text-xs text-green-500 flex items-center gap-1">
-                <Check size={12} /> 저장됨
-              </span>
-            ) : (
-              <span className="text-xs text-gray-400 dark:text-gray-500">
-                {relativeTime}
-              </span>
-            )}
-          </div>
+        {/* 시간 정보 - 한 줄로 */}
+        <div className="flex-1 min-w-0 flex items-center gap-2">
+          <span className="text-gray-600 dark:text-gray-300">
+            {dateInfo.dayName}
+          </span>
+          <span className="text-gray-300 dark:text-gray-600">|</span>
+          <span className="font-medium text-gray-900 dark:text-white">
+            {dateInfo.timeString}
+          </span>
+          {editable && (
+            <Pencil size={14} className="text-gray-400 dark:text-gray-500 ml-auto" />
+          )}
         </div>
-
-        {/* 편집 버튼 (hover 시 표시) */}
-        {editable && (
-          <div className={`
-            absolute right-3 top-1/2 -translate-y-1/2
-            transition-opacity duration-200
-            ${isHovered ? 'opacity-100' : 'opacity-0'}
-          `}>
-            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-              <Pencil size={14} className="text-gray-500 dark:text-gray-400" />
-            </div>
-          </div>
-        )}
 
         {/* 저장 중 오버레이 */}
         {isSaving && (

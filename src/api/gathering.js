@@ -30,6 +30,6 @@ export const gatheringAPI = {
   },
 
   createPaymentRequest: (gatheringId, totalAmount) => {
-    return api.post(`/gatherings/${gatheringId}/payment-request`, { totalAmount });
+    return api.post(`/gatherings/${gatheringId}/payment-request?totalAmount=${totalAmount}`);
   }
 };
