@@ -21,8 +21,21 @@ export const useGatheringStore = create((set, get) => ({
     try {
       const response = await gatheringService.createGathering(gatheringData);
       // API 응답 구조: { success: true, data: {...} }
-      const gathering = response?.data || response;
+      let gathering = response?.data || response;
       console.log('createGathering response:', gathering);
+
+      // 생성자를 참여자에 자동 추가
+      if (gathering?.qrCode) {
+        try {
+          const joinResponse = await gatheringService.joinGathering(gathering.qrCode);
+          gathering = joinResponse?.data || joinResponse || gathering;
+          console.log('Owner joined as participant:', gathering);
+        } catch (joinError) {
+          // 이미 참여자인 경우 등 에러 무시
+          console.log('Owner join skipped:', joinError.message);
+        }
+      }
+
       set({ currentGathering: gathering, loading: false });
       return gathering;
     } catch (error) {
