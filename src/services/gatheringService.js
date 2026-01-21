@@ -11,8 +11,8 @@ export const gatheringService = {
     return response.data;
   },
 
-  async joinGathering(gatheringId) {
-    const response = await gatheringAPI.joinGathering(gatheringId);
+  async joinGathering(qrCode) {
+    const response = await gatheringAPI.joinGathering(qrCode);
     return response.data;
   },
 

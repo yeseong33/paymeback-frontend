@@ -13,8 +13,8 @@ export const gatheringAPI = {
     return api.get(`/gatherings/${id}`);
   },
 
-  joinGathering: (gatheringId) => {
-    return api.post(`/gatherings/${gatheringId}/join`);
+  joinGathering: (qrCode) => {
+    return api.post('/gatherings/join', { qrCode });
   },
 
   getParticipatedGatherings: (size = 100) => {
