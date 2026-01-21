@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
 import { validateEmail, validatePassword, validateName } from '../../utils/validation';
-import ThemeToggle from '../common/ThemeToggle';
 
 const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
   const { signUp } = useAuth();
@@ -115,11 +114,7 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0 bg-white dark:bg-gray-900 transition-colors duration-200 relative">
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
-      
+    <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0 bg-white dark:bg-gray-900 transition-colors duration-200">
       <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
         Pay Me Back
       </h1>

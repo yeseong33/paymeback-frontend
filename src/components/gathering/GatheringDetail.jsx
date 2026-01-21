@@ -18,21 +18,40 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [showTimeEdit, setShowTimeEdit] = useState(false);
   const [showExpenseTest, setShowExpenseTest] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState(null);
   const [totalAmount, setTotalAmount] = useState('');
-  // TODO: API 연동 시 아래 모킹 데이터 제거
-  const [payments] = useState([
-    { id: 1, amount: 25000, status: 'COMPLETED', completedAt: Date.now() - 3600000 },
-    { id: 2, amount: 25000, status: 'PENDING', createdAt: Date.now() - 1800000 },
-    { id: 3, amount: 25000, status: 'FAILED', createdAt: Date.now() - 7200000 },
-  ]);
+  const [expenses, setExpenses] = useState([]);
+  const [expensesLoading, setExpensesLoading] = useState(false);
 
-  const formatPaymentStatus = (status) => {
-    switch (status) {
-      case 'COMPLETED': return { label: '완료', color: 'text-green-600 dark:text-green-400' };
-      case 'PENDING': return { label: '대기', color: 'text-yellow-600 dark:text-yellow-400' };
-      case 'FAILED': return { label: '실패', color: 'text-red-600 dark:text-red-400' };
-      default: return { label: status, color: 'text-gray-600 dark:text-gray-400' };
+  // 지출 목록 조회
+  const fetchExpenses = async () => {
+    if (!gathering?.id) return;
+    setExpensesLoading(true);
+    try {
+      const response = await expenseAPI.getExpensesByGathering(gathering.id);
+      const data = response?.data?.data || response?.data || [];
+      console.log('Expenses:', data);
+      setExpenses(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Failed to fetch expenses:', error);
+      setExpenses([]);
+    } finally {
+      setExpensesLoading(false);
     }
+  };
+
+  // 모임 변경 시 지출 목록 조회
+  useEffect(() => {
+    fetchExpenses();
+  }, [gathering?.id]);
+
+  const CATEGORY_LABELS = {
+    FOOD: '음식',
+    TRANSPORT: '교통',
+    ACCOMMODATION: '숙박',
+    ENTERTAINMENT: '오락',
+    SHOPPING: '쇼핑',
+    OTHER: '기타',
   };
 
   const formatDateTime = (timestamp) => {
@@ -141,11 +160,12 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
           </div>
 
           {/* 날짜/시간 표시 - 심플 버전 */}
-          {(gathering.startAt || gathering.endAt) && (() => {
+          {(() => {
             const start = formatTimeSimple(gathering.startAt);
             const end = formatTimeSimple(gathering.endAt);
             const isSameDay = start && end &&
               start.month === end.month && start.day === end.day;
+            const hasTime = gathering.startAt || gathering.endAt;
 
             return (
               <div className="border-t border-gray-100 dark:border-gray-700 pt-4">
@@ -154,24 +174,33 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
                   onClick={() => isOwner && setShowTimeEdit(true)}
                 >
                   <div className="flex-1 flex items-center gap-2 text-sm">
-                    {start && (
+                    {hasTime ? (
                       <>
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md font-medium">
-                          {start.month}/{start.day} ({start.dayName})
-                        </span>
-                        <span className="text-gray-600 dark:text-gray-400">{start.time}</span>
-                      </>
-                    )}
-                    {end && (
-                      <>
-                        <span className="text-gray-400">→</span>
-                        {!isSameDay && (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md font-medium">
-                            {end.month}/{end.day} ({end.dayName})
-                          </span>
+                        {start && (
+                          <>
+                            <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md font-medium">
+                              {start.month}/{start.day} ({start.dayName})
+                            </span>
+                            <span className="text-gray-600 dark:text-gray-400">{start.time}</span>
+                          </>
                         )}
-                        <span className="text-gray-600 dark:text-gray-400">{end.time}</span>
+                        {end && (
+                          <>
+                            <span className="text-gray-400">→</span>
+                            {!isSameDay && (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-md font-medium">
+                                {end.month}/{end.day} ({end.dayName})
+                              </span>
+                            )}
+                            <span className="text-gray-600 dark:text-gray-400">{end.time}</span>
+                          </>
+                        )}
                       </>
+                    ) : (
+                      <span className="flex items-center gap-2 text-gray-400 dark:text-gray-500">
+                        <Clock size={16} />
+                        {isOwner ? '일정을 추가하세요' : '일정 미정'}
+                      </span>
                     )}
                   </div>
                   {isOwner && (
@@ -214,38 +243,51 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
         </div>
       )}
 
-      {/* 결제 내역 */}
-      {payments.length > 0 && (
-        <div className="card">
-          <h3 className="font-semibold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+      {/* 지출 내역 */}
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold flex items-center gap-2 text-gray-900 dark:text-white">
             <Receipt size={18} />
-            결제 내역
+            지출 내역
           </h3>
+          {expenses.length > 0 && (
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+              총 {expenses.reduce((sum, e) => sum + (e.totalAmount || 0), 0).toLocaleString()}
+            </span>
+          )}
+        </div>
+        {expensesLoading ? (
+          <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+            로딩 중...
+          </div>
+        ) : expenses.length > 0 ? (
           <div className="space-y-2">
-            {payments.map((payment) => {
-              const statusInfo = formatPaymentStatus(payment.status);
-              return (
-                <div
-                  key={payment.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                >
-                  <div className="flex items-center gap-4">
-                    <span className="font-medium text-gray-900 dark:text-white">
-                      {formatCurrency(payment.amount)}
-                    </span>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {formatDateTime(payment.completedAt || payment.createdAt)}
-                    </span>
-                  </div>
-                  <span className={`text-sm font-medium ${statusInfo.color}`}>
-                    {statusInfo.label}
+            {expenses.map((expense) => (
+              <div
+                key={expense.id}
+                onClick={() => setSelectedExpense(expense)}
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-900 dark:text-white">
+                    {expense.totalAmount?.toLocaleString()}
+                  </span>
+                  <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
+                    {CATEGORY_LABELS[expense.category] || expense.category}
                   </span>
                 </div>
-              );
-            })}
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {formatDateTime(expense.paidAt || expense.createdAt)}
+                </span>
+              </div>
+            ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+            등록된 지출이 없습니다
+          </div>
+        )}
+      </div>
 
       {/* 지출 API 테스트 */}
       <div className="card bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
@@ -377,8 +419,274 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
         isOpen={showExpenseTest}
         onClose={() => setShowExpenseTest(false)}
         gathering={gathering}
+        onSuccess={fetchExpenses}
+      />
+
+      {/* 지출 상세 모달 */}
+      <ExpenseDetailModal
+        isOpen={!!selectedExpense}
+        onClose={() => setSelectedExpense(null)}
+        expense={selectedExpense}
+        onDelete={fetchExpenses}
+        onUpdate={fetchExpenses}
+        categoryLabels={CATEGORY_LABELS}
+        gathering={gathering}
       />
     </div>
+  );
+};
+
+// 지출 상세 모달 컴포넌트
+const ExpenseDetailModal = ({ isOpen, onClose, expense, onDelete, categoryLabels, gathering, onUpdate }) => {
+  const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [participantShares, setParticipantShares] = useState([]);
+
+  // 참여자 목록 초기화
+  useEffect(() => {
+    if (isOpen && expense && gathering) {
+      const allParticipants = [];
+
+      // 방장 추가
+      if (gathering.owner) {
+        const isIncluded = expense.participants?.some(p => p.user?.id === gathering.owner.id);
+        const participantData = expense.participants?.find(p => p.user?.id === gathering.owner.id);
+        allParticipants.push({
+          userId: gathering.owner.id,
+          userName: gathering.owner.name || '방장',
+          isOwner: true,
+          included: isIncluded,
+          shareAmount: participantData?.shareAmount || 0,
+        });
+      }
+
+      // 나머지 참여자 추가
+      if (gathering.participants) {
+        gathering.participants.forEach(p => {
+          const participantId = p.user?.id || p.id;
+          if (participantId !== gathering.owner?.id) {
+            const isIncluded = expense.participants?.some(ep => ep.user?.id === participantId);
+            const participantData = expense.participants?.find(ep => ep.user?.id === participantId);
+            allParticipants.push({
+              userId: participantId,
+              userName: p.user?.name || p.name || '알 수 없음',
+              isOwner: false,
+              included: isIncluded,
+              shareAmount: participantData?.shareAmount || 0,
+            });
+          }
+        });
+      }
+
+      setParticipantShares(allParticipants);
+      setIsEditing(false);
+    }
+  }, [isOpen, expense, gathering]);
+
+  if (!expense) return null;
+
+  const formatDateTime = (timestamp) => {
+    if (!timestamp) return '-';
+    const date = new Date(timestamp);
+    return date.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleToggleParticipant = (userId) => {
+    setParticipantShares(prev => prev.map(p =>
+      p.userId === userId ? { ...p, included: !p.included } : p
+    ));
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('이 지출을 삭제하시겠습니까?')) return;
+
+    setLoading(true);
+    try {
+      await expenseAPI.delete(expense.id);
+      toast.success('지출이 삭제되었습니다.');
+      onDelete?.();
+      onClose();
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error(error.response?.data?.message || '삭제 실패');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    const includedParticipants = participantShares.filter(p => p.included);
+    if (includedParticipants.length === 0) {
+      toast.error('최소 1명의 참여자를 선택해주세요.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 기존 지출 삭제 후 새로 생성
+      await expenseAPI.delete(expense.id);
+
+      const requestData = {
+        gatheringId: expense.gatheringId,
+        totalAmount: expense.totalAmount,
+        description: expense.description || undefined,
+        location: expense.location || undefined,
+        category: expense.category,
+        paidAt: expense.paidAt,
+        receiptImageUrl: expense.receiptImageUrl || undefined,
+        shareType: 'EQUAL',
+        participants: includedParticipants.map(p => ({
+          userId: p.userId,
+          shareValue: 0,
+        })),
+      };
+
+      await expenseAPI.create(requestData);
+      toast.success('지출이 수정되었습니다.');
+      onUpdate?.();
+      onClose();
+    } catch (error) {
+      console.error('Update error:', error);
+      toast.error(error.response?.data?.message || '수정 실패');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const includedCount = participantShares.filter(p => p.included).length;
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="지출 상세">
+      <div className="space-y-4">
+        {/* 금액 */}
+        <div className="text-center py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="text-3xl font-bold text-gray-900 dark:text-white">
+            {expense.totalAmount?.toLocaleString()}원
+          </div>
+          <span className="inline-block mt-2 text-sm px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">
+            {categoryLabels[expense.category] || expense.category}
+          </span>
+        </div>
+
+        {/* 상세 정보 */}
+        <div className="space-y-3 text-sm">
+          {expense.description && (
+            <div className="flex justify-between">
+              <span className="text-gray-500 dark:text-gray-400">설명</span>
+              <span className="text-gray-900 dark:text-white">{expense.description}</span>
+            </div>
+          )}
+          {expense.location && (
+            <div className="flex justify-between">
+              <span className="text-gray-500 dark:text-gray-400">위치</span>
+              <span className="text-gray-900 dark:text-white">{expense.location}</span>
+            </div>
+          )}
+          <div className="flex justify-between">
+            <span className="text-gray-500 dark:text-gray-400">결제자</span>
+            <span className="text-gray-900 dark:text-white">{expense.payer?.name || '알 수 없음'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-500 dark:text-gray-400">결제 시간</span>
+            <span className="text-gray-900 dark:text-white">{formatDateTime(expense.paidAt)}</span>
+          </div>
+        </div>
+
+        {/* 참여자 */}
+        <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              참여자 {isEditing && `(${includedCount}명 선택)`}
+            </div>
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {isEditing ? '취소' : '수정'}
+            </button>
+          </div>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {participantShares.map((p) => (
+              <div key={p.userId} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                {isEditing ? (
+                  <>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={p.included}
+                        onChange={() => handleToggleParticipant(p.userId)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-9 h-5 bg-gray-300 dark:bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                    </label>
+                    <span className={`flex-1 ml-3 text-sm ${p.included ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500 line-through'}`}>
+                      {p.userName}
+                      {p.isOwner && <span className="ml-1 text-xs bg-black text-white px-1.5 py-0.5 rounded">방장</span>}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-sm text-gray-900 dark:text-white">
+                      {p.userName}
+                      {p.isOwner && <span className="ml-1 text-xs bg-black text-white px-1.5 py-0.5 rounded">방장</span>}
+                    </span>
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                      {p.shareAmount?.toLocaleString()}원
+                    </span>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 버튼 */}
+        <div className="flex gap-2 pt-2">
+          {isEditing ? (
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                fullWidth
+                onClick={() => setIsEditing(false)}
+              >
+                취소
+              </Button>
+              <Button
+                type="button"
+                fullWidth
+                onClick={handleSave}
+                loading={loading}
+              >
+                저장
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                type="button"
+                variant="secondary"
+                fullWidth
+                onClick={handleDelete}
+                loading={loading}
+                className="!text-red-600 dark:!text-red-400"
+              >
+                삭제
+              </Button>
+              <Button type="button" fullWidth onClick={onClose}>
+                닫기
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+    </Modal>
   );
 };
 
@@ -640,7 +948,7 @@ const TimeEditModal = ({ isOpen, onClose, startAt, endAt, onSave, loading }) => 
 };
 
 // 지출 테스트 모달 컴포넌트
-const ExpenseTestModal = ({ isOpen, onClose, gathering }) => {
+const ExpenseTestModal = ({ isOpen, onClose, gathering, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     totalAmount: '',
@@ -765,6 +1073,7 @@ const ExpenseTestModal = ({ isOpen, onClose, gathering }) => {
       const response = await expenseAPI.create(requestData);
       console.log('Expense Response:', response);
       toast.success('지출이 등록되었습니다!');
+      onSuccess?.();
       onClose();
     } catch (error) {
       console.error('Expense Error:', error);

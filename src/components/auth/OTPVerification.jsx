@@ -5,7 +5,6 @@ import { useAuth } from '../../hooks/useAuth';
 import { validateOTP } from '../../utils/validation';
 import Button from '../common/Button';
 import Input from '../common/Input';
-import ThemeToggle from '../common/ThemeToggle';
 
 
 const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMode, password: propPassword, onBack }) => {
@@ -146,11 +145,7 @@ const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMo
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-white dark:bg-gray-900 transition-colors duration-200 relative">
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
-      
+    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-white dark:bg-gray-900 transition-colors duration-200">
       <div className="card w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">이메일 인증</h2>

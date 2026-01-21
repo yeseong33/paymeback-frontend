@@ -111,8 +111,8 @@ const ProfilePage = () => {
               )}
               <span className="text-gray-900 dark:text-white">다크 모드</span>
             </div>
-            <div className={`w-11 h-6 rounded-full transition-colors ${isDark ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
-              <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ${isDark ? 'translate-x-5.5 ml-0.5' : 'translate-x-0.5'}`} />
+            <div className={`w-11 h-6 rounded-full transition-colors ${isDark ? 'bg-blue-500' : 'bg-gray-300'}`}>
+              <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform mt-0.5 ml-0.5 ${isDark ? 'translate-x-5' : 'translate-x-0'}`} />
             </div>
           </button>
         </div>

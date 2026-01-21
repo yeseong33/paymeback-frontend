@@ -1,12 +1,23 @@
 <!doctype html>
-<html lang="en" class="h-full bg-white">
+<html lang="en" class="h-full dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pay Me Back</title>
+    <script>
+      // 페이지 로드 전 테마 적용 (깜빡임 방지)
+      (function() {
+        const theme = localStorage.getItem('theme') || 'dark';
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      })();
+    </script>
   </head>
-  <body class="h-full">
+  <body class="h-full bg-white dark:bg-gray-900">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

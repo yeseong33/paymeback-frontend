@@ -3,7 +3,6 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { validateEmail } from '../../utils/validation';
-import ThemeToggle from '../common/ThemeToggle';
 
 const LoginForm = ({ onSwitchToSignup }) => {
   const { signIn, needsOTPVerification } = useAuth();
@@ -143,12 +142,7 @@ const LoginForm = ({ onSwitchToSignup }) => {
   };
 
   return (
-    <>
     <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-white dark:bg-gray-900 transition-colors duration-200">
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
-        
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
           <img
             alt="Your Company"
@@ -247,7 +241,6 @@ const LoginForm = ({ onSwitchToSignup }) => {
           </p>
         </div>
       </div>
-    </>
   );
 };
 
