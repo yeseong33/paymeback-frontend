@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Users, QrCode, CreditCard, Receipt, Clock, Pencil, FlaskConical } from 'lucide-react';
+import { Users, QrCode, CreditCard, Receipt, Clock, Pencil, FlaskConical, Calculator, Send, Check, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useGathering } from '../../hooks/useGathering';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency, getStatusColor } from '../../utils/helpers';
 import { GATHERING_STATUS } from '../../utils/constants';
-import { expenseAPI } from '../../api';
+import { expenseAPI, settlementAPI } from '../../api';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Modal from '../common/Modal';
@@ -22,6 +22,9 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
   const [totalAmount, setTotalAmount] = useState('');
   const [expenses, setExpenses] = useState([]);
   const [expensesLoading, setExpensesLoading] = useState(false);
+  const [settlements, setSettlements] = useState([]);
+  const [settlementsLoading, setSettlementsLoading] = useState(false);
+  const [calculatingSettlement, setCalculatingSettlement] = useState(false);
 
   // 지출 목록 조회
   const fetchExpenses = async () => {
@@ -40,9 +43,67 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
     }
   };
 
-  // 모임 변경 시 지출 목록 조회
+  // 정산 목록 조회
+  const fetchSettlements = async () => {
+    if (!gathering?.id) return;
+    setSettlementsLoading(true);
+    try {
+      const response = await settlementAPI.getByGathering(gathering.id);
+      const data = response?.data?.data || response?.data || [];
+      console.log('Settlements:', data);
+      setSettlements(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error('Failed to fetch settlements:', error);
+      setSettlements([]);
+    } finally {
+      setSettlementsLoading(false);
+    }
+  };
+
+  // 정산 계산 (Expense 기반으로 Settlement 생성)
+  const handleCalculateSettlement = async () => {
+    if (!gathering?.id) return;
+    setCalculatingSettlement(true);
+    try {
+      await settlementAPI.calculate(gathering.id);
+      toast.success('정산이 계산되었습니다!');
+      await fetchSettlements();
+    } catch (error) {
+      console.error('Failed to calculate settlement:', error);
+      toast.error(error.response?.data?.message || '정산 계산 실패');
+    } finally {
+      setCalculatingSettlement(false);
+    }
+  };
+
+  // 정산 완료 (송금자가 호출)
+  const handleCompleteSettlement = async (settlementId) => {
+    try {
+      await settlementAPI.complete(settlementId);
+      toast.success('송금 완료 처리되었습니다!');
+      await fetchSettlements();
+    } catch (error) {
+      console.error('Failed to complete settlement:', error);
+      toast.error(error.response?.data?.message || '처리 실패');
+    }
+  };
+
+  // 정산 확인 (수령자가 호출)
+  const handleConfirmSettlement = async (settlementId) => {
+    try {
+      await settlementAPI.confirm(settlementId);
+      toast.success('수령 확인되었습니다!');
+      await fetchSettlements();
+    } catch (error) {
+      console.error('Failed to confirm settlement:', error);
+      toast.error(error.response?.data?.message || '처리 실패');
+    }
+  };
+
+  // 모임 변경 시 지출/정산 목록 조회
   useEffect(() => {
     fetchExpenses();
+    fetchSettlements();
   }, [gathering?.id]);
 
   const CATEGORY_LABELS = {
@@ -229,20 +290,6 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
         )}
       </div>
 
-      {/* 방장 액션 - 결제 요청 */}
-      {isOwner && canRequestPayment && (
-        <div className="card">
-          <Button
-            fullWidth
-            onClick={() => setShowPaymentForm(true)}
-            className="flex items-center justify-center gap-2"
-          >
-            <CreditCard size={18} />
-            결제 요청하기
-          </Button>
-        </div>
-      )}
-
       {/* 지출 내역 */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
@@ -288,6 +335,139 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
           </div>
         )}
       </div>
+
+      {/* 정산 계산 버튼 (방장 + 지출 존재 시) */}
+      {isOwner && expenses.length > 0 && (
+        <div className="card">
+          <Button
+            fullWidth
+            variant="secondary"
+            onClick={handleCalculateSettlement}
+            loading={calculatingSettlement}
+            className="flex items-center justify-center gap-2"
+          >
+            <Calculator size={18} />
+            정산 계산
+          </Button>
+        </div>
+      )}
+
+      {/* 정산 현황 */}
+      {(() => {
+        const toSend = settlements.filter(
+          (s) => s.fromUser?.id === user?.id || s.fromUser?.email === user?.email
+        );
+        const toReceive = settlements.filter(
+          (s) => s.toUser?.id === user?.id || s.toUser?.email === user?.email
+        );
+        const others = settlements.filter(
+          (s) =>
+            !(s.fromUser?.id === user?.id || s.fromUser?.email === user?.email) &&
+            !(s.toUser?.id === user?.id || s.toUser?.email === user?.email)
+        );
+
+        return (
+          <div className="card">
+            <h3 className="font-semibold flex items-center gap-2 text-gray-900 dark:text-white mb-4">
+              <Calculator size={18} />
+              정산 현황
+            </h3>
+
+            {settlementsLoading ? (
+              <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                로딩 중...
+              </div>
+            ) : settlements.length > 0 ? (
+              <div className="space-y-5">
+                {/* 보내야 할 정산 */}
+                {toSend.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Send size={16} className="text-red-500 dark:text-red-400" />
+                      <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                        보내야 할 정산
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        ({toSend.length}건)
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {toSend.map((settlement) => (
+                        <SettlementItem
+                          key={settlement.id}
+                          settlement={settlement}
+                          currentUser={user}
+                          onComplete={handleCompleteSettlement}
+                          onConfirm={handleConfirmSettlement}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 받아야 할 정산 */}
+                {toReceive.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Check size={16} className="text-green-500 dark:text-green-400" />
+                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                        받아야 할 정산
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        ({toReceive.length}건)
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {toReceive.map((settlement) => (
+                        <SettlementItem
+                          key={settlement.id}
+                          settlement={settlement}
+                          currentUser={user}
+                          onComplete={handleCompleteSettlement}
+                          onConfirm={handleConfirmSettlement}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 기타 정산 (제3자 간) */}
+                {others.length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <ArrowRight size={16} className="text-gray-400 dark:text-gray-500" />
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        기타 정산
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        ({others.length}건)
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {others.map((settlement) => (
+                        <SettlementItem
+                          key={settlement.id}
+                          settlement={settlement}
+                          currentUser={user}
+                          onComplete={handleCompleteSettlement}
+                          onConfirm={handleConfirmSettlement}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                {expenses.length > 0
+                  ? '정산 계산을 실행해주세요'
+                  : '지출을 먼저 등록해주세요'
+                }
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* 지출 API 테스트 */}
       <div className="card bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
@@ -1233,6 +1413,101 @@ const ExpenseTestModal = ({ isOpen, onClose, gathering, onSuccess }) => {
         </div>
       </div>
     </Modal>
+  );
+};
+
+// 정산 아이템 컴포넌트
+const SettlementItem = ({ settlement, currentUser, onComplete, onConfirm }) => {
+  const [loading, setLoading] = useState(false);
+
+  const isSender = settlement.fromUser?.id === currentUser?.id || settlement.fromUser?.email === currentUser?.email;
+  const isReceiver = settlement.toUser?.id === currentUser?.id || settlement.toUser?.email === currentUser?.email;
+
+  const handleComplete = async () => {
+    setLoading(true);
+    try {
+      await onComplete(settlement.id);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    try {
+      await onConfirm(settlement.id);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2 text-sm">
+          <span className={`font-medium ${isSender ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
+            {settlement.fromUser?.name || '알 수 없음'}
+            {isSender && <span className="text-xs ml-1">(나)</span>}
+          </span>
+          <ArrowRight size={14} className="text-gray-400" />
+          <span className={`font-medium ${isReceiver ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'}`}>
+            {settlement.toUser?.name || '알 수 없음'}
+            {isReceiver && <span className="text-xs ml-1">(나)</span>}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <span className="text-lg font-bold text-gray-900 dark:text-white">
+          {settlement.amount?.toLocaleString()}원
+        </span>
+
+        {/* 액션 버튼 */}
+        {isSender && (
+          <button
+            onClick={settlement.status === 'PENDING' ? handleComplete : undefined}
+            disabled={loading || settlement.status !== 'PENDING'}
+            className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+              settlement.status === 'PENDING'
+                ? 'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-default'
+            }`}
+          >
+            {loading ? (
+              <span className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                {settlement.status === 'PENDING' ? <Send size={14} /> : <Check size={14} />}
+                {settlement.status === 'PENDING' ? '송금하기' : settlement.status === 'COMPLETED' ? '송금완료' : '정산완료'}
+              </>
+            )}
+          </button>
+        )}
+
+        {isReceiver && (
+          <button
+            onClick={settlement.status === 'COMPLETED' ? handleConfirm : undefined}
+            disabled={loading || settlement.status !== 'COMPLETED'}
+            className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+              settlement.status === 'COMPLETED'
+                ? 'bg-green-500 text-white hover:bg-green-600 disabled:opacity-50'
+                : settlement.status === 'CONFIRMED'
+                  ? 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-default'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-default'
+            }`}
+          >
+            {loading ? (
+              <span className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                {settlement.status === 'CONFIRMED' ? <Check size={14} /> : <Clock size={14} />}
+                {settlement.status === 'PENDING' ? '송금 대기중' : settlement.status === 'COMPLETED' ? '수령확인' : '정산완료'}
+              </>
+            )}
+          </button>
+        )}
+      </div>
+    </div>
   );
 };
 
