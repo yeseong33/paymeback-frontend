@@ -107,18 +107,16 @@ const GatheringPage = () => {
               모임 정보
             </button>
             
-            {isOwner && (
-              <button
-                onClick={() => setActiveTab('payments')}
-                className={`flex-1 py-2 text-center font-medium transition-colors ${
-                  activeTab === 'payments' 
-                    ? 'border-b-2 border-black text-black' 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                결제 현황
-              </button>
-            )}
+            <button
+              onClick={() => setActiveTab('payments')}
+              className={`flex-1 py-2 text-center font-medium transition-colors ${
+                activeTab === 'payments'
+                  ? 'border-b-2 border-black text-black'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              결제 현황
+            </button>
           </div>
         )}
 
@@ -130,7 +128,7 @@ const GatheringPage = () => {
           />
         )}
         
-        {activeTab === 'payments' && isOwner && (
+        {activeTab === 'payments' && (
           <PaymentHistory gatheringId={currentGathering.id} />
         )}
 
