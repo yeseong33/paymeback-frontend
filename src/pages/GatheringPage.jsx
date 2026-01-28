@@ -87,38 +87,35 @@ const GatheringPage = () => {
 
   return (
     <div className="page">
-      <Header 
-        title={currentGathering.title} 
-        showBack={true} 
+      <Header
+        title=""
+        showBack={true}
       />
       
       <div className="page-content">
         {/* 탭 네비게이션 */}
-        {hasPaymentRequest && (
-          <div className="flex mb-6 border-b border-gray-200">
+        <div className="flex gap-2 mb-6 p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
             <button
               onClick={() => setActiveTab('details')}
-              className={`flex-1 py-2 text-center font-medium transition-colors ${
-                activeTab === 'details' 
-                  ? 'border-b-2 border-black text-black' 
-                  : 'text-gray-500 hover:text-gray-700'
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+                activeTab === 'details'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               모임 정보
             </button>
-            
             <button
               onClick={() => setActiveTab('payments')}
-              className={`flex-1 py-2 text-center font-medium transition-colors ${
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
                 activeTab === 'payments'
-                  ? 'border-b-2 border-black text-black'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
               }`}
             >
               결제 현황
             </button>
           </div>
-        )}
 
         {/* 탭 콘텐츠 */}
         {activeTab === 'details' && (

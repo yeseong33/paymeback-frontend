@@ -81,6 +81,13 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
     try {
       await settlementAPI.complete(settlementId);
       toast.success('송금 완료 처리되었습니다!');
+      // 송금 성공 시 수령 확인까지 자동 처리
+      try {
+        await settlementAPI.confirm(settlementId);
+        toast.success('수령 확인까지 자동 처리되었습니다!');
+      } catch (confirmError) {
+        console.error('Auto confirm failed:', confirmError);
+      }
       await fetchSettlements();
     } catch (error) {
       console.error('Failed to complete settlement:', error);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, Clock, XCircle, Users, Calculator, Send, Check, ArrowRight } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { usePayment } from '../../hooks/usePayment';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency, formatDate } from '../../utils/helpers';
@@ -91,12 +92,42 @@ const PaymentHistory = ({ gatheringId }) => {
     }
   };
 
+  // 정산 액션 핸들러
+  const handleCompleteSettlement = async (settlementId) => {
+    try {
+      await settlementAPI.complete(settlementId);
+      toast.success('송금 완료 처리되었습니다!');
+      // 송금 성공 시 수령 확인까지 자동 처리
+      try {
+        await settlementAPI.confirm(settlementId);
+        toast.success('수령 확인까지 자동 처리되었습니다!');
+      } catch (confirmError) {
+        console.error('Auto confirm failed:', confirmError);
+      }
+      await loadSettlements();
+    } catch (error) {
+      console.error('Failed to complete settlement:', error);
+      toast.error(error.response?.data?.message || '처리 실패');
+    }
+  };
+
+  const handleConfirmSettlement = async (settlementId) => {
+    try {
+      await settlementAPI.confirm(settlementId);
+      toast.success('수령 확인되었습니다!');
+      await loadSettlements();
+    } catch (error) {
+      console.error('Failed to confirm settlement:', error);
+      toast.error(error.response?.data?.message || '처리 실패');
+    }
+  };
+
   // 정산 통계
   const confirmedCount = settlements.filter(s => s.status === 'CONFIRMED').length;
   const completedCount = settlements.filter(s => s.status === 'COMPLETED').length;
   const pendingCount = settlements.filter(s => s.status === 'PENDING').length;
   const totalSettlements = settlements.length;
-  const settlementRate = totalSettlements > 0 ? ((confirmedCount / totalSettlements) * 100).toFixed(0) : 0;
+  const settlementRate = totalSettlements > 0 ? (((confirmedCount + completedCount) / totalSettlements) * 100).toFixed(0) : 0;
 
   // 내 정산
   const myToSend = settlements.filter(
@@ -214,7 +245,7 @@ const PaymentHistory = ({ gatheringId }) => {
                 </div>
                 <div className="space-y-2">
                   {myToSend.map((s) => (
-                    <SettlementRow key={s.id} settlement={s} currentUser={user} />
+                    <SettlementRow key={s.id} settlement={s} currentUser={user} onComplete={handleCompleteSettlement} onConfirm={handleConfirmSettlement} />
                   ))}
                 </div>
               </div>
@@ -234,7 +265,7 @@ const PaymentHistory = ({ gatheringId }) => {
                 </div>
                 <div className="space-y-2">
                   {myToReceive.map((s) => (
-                    <SettlementRow key={s.id} settlement={s} currentUser={user} />
+                    <SettlementRow key={s.id} settlement={s} currentUser={user} onComplete={handleCompleteSettlement} onConfirm={handleConfirmSettlement} />
                   ))}
                 </div>
               </div>
@@ -254,7 +285,7 @@ const PaymentHistory = ({ gatheringId }) => {
                 </div>
                 <div className="space-y-2">
                   {others.map((s) => (
-                    <SettlementRow key={s.id} settlement={s} currentUser={user} />
+                    <SettlementRow key={s.id} settlement={s} currentUser={user} onComplete={handleCompleteSettlement} onConfirm={handleConfirmSettlement} />
                   ))}
                 </div>
               </div>
@@ -300,37 +331,33 @@ const PaymentHistory = ({ gatheringId }) => {
 };
 
 // 정산 행 컴포넌트
-const SettlementRow = ({ settlement, currentUser }) => {
+const SettlementRow = ({ settlement, currentUser, onComplete, onConfirm }) => {
+  const [loading, setLoading] = useState(false);
+
   const isSender = settlement.fromUser?.id === currentUser?.id || settlement.fromUser?.email === currentUser?.email;
   const isReceiver = settlement.toUser?.id === currentUser?.id || settlement.toUser?.email === currentUser?.email;
 
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'CONFIRMED':
-        return '정산완료';
-      case 'COMPLETED':
-        return '송금완료';
-      case 'PENDING':
-      default:
-        return '대기중';
+  const handleComplete = async () => {
+    setLoading(true);
+    try {
+      await onComplete(settlement.id);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case 'CONFIRMED':
-        return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-      case 'COMPLETED':
-        return 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300';
-      case 'PENDING':
-      default:
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+  const handleConfirm = async () => {
+    setLoading(true);
+    try {
+      await onConfirm(settlement.id);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2 text-sm">
           <span className={`font-medium ${isSender ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
             {settlement.fromUser?.name || '알 수 없음'}
@@ -342,14 +369,54 @@ const SettlementRow = ({ settlement, currentUser }) => {
             {isReceiver && <span className="text-xs ml-1">(나)</span>}
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-gray-900 dark:text-white">
-            {settlement.amount?.toLocaleString()}원
-          </span>
-          <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusStyle(settlement.status)}`}>
-            {getStatusLabel(settlement.status)}
-          </span>
-        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <span className="text-lg font-bold text-gray-900 dark:text-white">
+          {settlement.amount?.toLocaleString()}원
+        </span>
+
+        {isSender && (
+          <button
+            onClick={settlement.status === 'PENDING' ? handleComplete : undefined}
+            disabled={loading || settlement.status !== 'PENDING'}
+            className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+              settlement.status === 'PENDING'
+                ? 'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-default'
+            }`}
+          >
+            {loading ? (
+              <span className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                {settlement.status === 'PENDING' ? <Send size={14} /> : <Check size={14} />}
+                {settlement.status === 'PENDING' ? '송금하기' : settlement.status === 'COMPLETED' ? '송금완료' : '정산완료'}
+              </>
+            )}
+          </button>
+        )}
+
+        {isReceiver && (
+          <button
+            onClick={settlement.status === 'COMPLETED' ? handleConfirm : undefined}
+            disabled={loading || settlement.status !== 'COMPLETED'}
+            className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+              settlement.status === 'COMPLETED'
+                ? 'bg-green-500 text-white hover:bg-green-600 disabled:opacity-50'
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-default'
+            }`}
+          >
+            {loading ? (
+              <span className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                {settlement.status === 'CONFIRMED' ? <Check size={14} /> : <Clock size={14} />}
+                {settlement.status === 'PENDING' ? '송금 대기중' : settlement.status === 'COMPLETED' ? '수령확인' : '정산완료'}
+              </>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );
