@@ -331,7 +331,10 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
             <h1 className="text-xl font-bold text-gray-900 dark:text-white truncate">{gathering.title}</h1>
             <div className="flex items-center gap-2 mt-1 text-sm text-gray-500 dark:text-gray-400">
               {formatDateCompact(gathering.startAt) && (
-                <span>{formatDateCompact(gathering.startAt)}</span>
+                <span>
+                  {formatDateCompact(gathering.startAt)}
+                  {gathering.endAt && ` - ${formatDateCompact(gathering.endAt)}`}
+                </span>
               )}
               <span>·</span>
               <span className="flex items-center gap-1">
@@ -426,7 +429,13 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
           return null;
         }
 
-        const netAmount = totalCompleted - totalReceived;
+        // 내 실제 지출 (모든 지출에서 내 분담금 합계)
+        const myTotalExpense = expenses.reduce((sum, expense) => {
+          const myShare = expense.participants?.find(
+            p => p.user?.id === user?.id || p.user?.email === user?.email
+          );
+          return sum + (myShare?.shareAmount || 0);
+        }, 0);
 
         return (
           <div className="space-y-4">
@@ -479,14 +488,12 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
               )
             )}
 
-            {/* 지출 요약 (별도 카드) */}
-            {(totalCompleted > 0 || totalReceived > 0) && (
+            {/* 내 지출 (실제 분담금 합계) */}
+            {myTotalExpense > 0 && (
               <div className="flex items-center justify-between px-5 py-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl shadow-[0_2px_8px_0_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
                 <span className="text-gray-500 dark:text-gray-400">내 지출</span>
-                <span className={`font-bold text-lg ${
-                  netAmount > 0 ? 'text-gray-900 dark:text-white' : 'text-green-600 dark:text-green-400'
-                }`}>
-                  {netAmount >= 0 ? '' : '+'}{Math.abs(netAmount).toLocaleString()}원
+                <span className="font-bold text-lg text-gray-900 dark:text-white">
+                  {myTotalExpense.toLocaleString()}원
                 </span>
               </div>
             )}
