@@ -200,7 +200,7 @@ const PaymentHistory = ({ gatheringId }) => {
                   <span className="font-medium text-green-600 dark:text-green-400">
                     {formatCurrency(
                       settlements
-                        .filter(s => s.status === 'CONFIRMED')
+                        .filter(s => s.status === 'CONFIRMED' || s.status === 'COMPLETED')
                         .reduce((sum, s) => sum + (s.amount || 0), 0)
                     )}
                   </span>
@@ -210,7 +210,7 @@ const PaymentHistory = ({ gatheringId }) => {
                   <span className="font-medium text-red-600 dark:text-red-400">
                     {formatCurrency(
                       settlements
-                        .filter(s => s.status !== 'CONFIRMED')
+                        .filter(s => s.status === 'PENDING')
                         .reduce((sum, s) => sum + (s.amount || 0), 0)
                     )}
                   </span>
@@ -376,7 +376,7 @@ const SettlementRow = ({ settlement, currentUser, onComplete, onConfirm }) => {
           {settlement.amount?.toLocaleString()}원
         </span>
 
-        {isSender && (
+        {isSender ? (
           <button
             onClick={settlement.status === 'PENDING' ? handleComplete : undefined}
             disabled={loading || settlement.status !== 'PENDING'}
@@ -395,9 +395,7 @@ const SettlementRow = ({ settlement, currentUser, onComplete, onConfirm }) => {
               </>
             )}
           </button>
-        )}
-
-        {isReceiver && (
+        ) : isReceiver ? (
           <button
             onClick={settlement.status === 'COMPLETED' ? handleConfirm : undefined}
             disabled={loading || settlement.status !== 'COMPLETED'}
@@ -416,6 +414,17 @@ const SettlementRow = ({ settlement, currentUser, onComplete, onConfirm }) => {
               </>
             )}
           </button>
+        ) : (
+          <span className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg ${
+            settlement.status === 'CONFIRMED'
+              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+              : settlement.status === 'COMPLETED'
+                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+          }`}>
+            {settlement.status === 'CONFIRMED' ? <Check size={14} /> : settlement.status === 'COMPLETED' ? <Send size={14} /> : <Clock size={14} />}
+            {settlement.status === 'PENDING' ? '대기중' : settlement.status === 'COMPLETED' ? '송금완료' : '정산완료'}
+          </span>
         )}
       </div>
     </div>

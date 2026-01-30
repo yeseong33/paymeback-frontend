@@ -3,14 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
 import SignupForm from '../components/auth/SignupForm';
 import OTPVerification from '../components/auth/OTPVerification';
-import AlertModal from '../components/common/AlertModal';
 import { useAuth } from '../hooks/useAuth';
 
 const AuthPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const [showOTPAlert, setShowOTPAlert] = useState(false);
   const initialView = location.state?.view || 'login';
   const [currentView, setCurrentView] = useState(initialView); // 'login', 'signup', 'otp'
 
@@ -22,9 +20,7 @@ const AuthPage = () => {
   }, [isAuthenticated, navigate, currentView]);
   
   useEffect(() => {
-    console.log('AuthPage location.state:', location.state);
     if (location.state?.view) {
-      console.log('Setting view to:', location.state.view);
       setCurrentView(location.state.view);
     }
   }, [location.state]);
@@ -58,21 +54,17 @@ const AuthPage = () => {
       )}
       
       {currentView === 'signup' && (
-        <SignupForm 
+        <SignupForm
           onSignupSuccess={handleSignupSuccess}
           onSwitchToLogin={handleSwitchToLogin}
         />
-      )}-=
+      )}
       
       {currentView === 'otp' && (
-        <OTPVerification 
+        <OTPVerification
           email={location.state?.email || signupEmail}
           mode={location.state?.mode || 'signup'}
-          password={location.state?.password}
-          onVerificationSuccess={() => {
-            handleOTPVerificationSuccess();
-            setShowOTPAlert(true);
-          }}
+          onVerificationSuccess={handleOTPVerificationSuccess}
           onBack={handleOTPBack}
         />
       )}

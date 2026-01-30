@@ -7,19 +7,14 @@ import Button from '../common/Button';
 import Input from '../common/Input';
 
 
-const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMode, password: propPassword, onBack }) => {
-  const { verifyOTP, resendOTP, signIn } = useAuth();
+const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMode, onBack }) => {
+  const { verifyOTP, resendOTP } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
   // props 우선, 없으면 location.state에서 가져옴
   const email = propEmail || location.state?.email;
   const mode = propMode || location.state?.mode;
-  const password = propPassword || location.state?.password;
-
-  useEffect(() => {
-    console.log('OTPVerification mounted with:', { email, mode, propEmail, propMode });
-  }, [email, mode, propEmail, propMode]);
 
   useEffect(() => {
     if (!email || !mode) {
@@ -30,8 +25,8 @@ const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMo
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [resendLoading, setResendLoading] = useState(false);
   const [countdown, setCountdown] = useState(300); // 5 minutes
+  const [resendCooldown, setResendCooldown] = useState(0); // 재발송 쿨다운
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -42,6 +37,7 @@ const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMo
         }
         return prev - 1;
       });
+      setResendCooldown(prev => (prev > 0 ? prev - 1 : 0));
     }, 1000);
 
     return () => clearInterval(timer);
@@ -79,18 +75,9 @@ const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMo
     try {
       const verificationData = { email, otpCode };
       
-      if (mode === 'signin') {
-        // 로그인 시 OTP 인증
-        await verifyOTP(verificationData);
-        // 인증 성공 후 다시 로그인 시도
-        await signIn({ email, password });
-        onVerificationSuccess();
-      } else {
-        // 회원가입 시 OTP 인증
-        await verifyOTP(verificationData);
-        toast.success('이메일 인증이 완료되었습니다.\n다시 로그인 해주세요.');
-        onVerificationSuccess();
-      }
+      await verifyOTP(verificationData);
+      toast.success('이메일 인증이 완료되었습니다.\n다시 로그인 해주세요.');
+      onVerificationSuccess();
     } catch (error) {
       // U001: 유저가 없음 = 회원가입 실패
       if (error.code === 'U001') {
@@ -106,9 +93,10 @@ const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMo
   };
 
   const handleResend = () => {
+    if (resendCooldown > 0) return;
+
     // resendOTP 비동기 호출 (응답 기다리지 않음)
     resendOTP(email)
-      .then(() => console.log('OTP resent successfully'))
       .catch((error) => {
         // U001: 유저가 없음 = 회원가입 실패
         if (error.code === 'U001') {
@@ -122,6 +110,7 @@ const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMo
     // 즉시 UI 피드백
     toast.success('인증 코드를 재발송 중입니다.');
     setCountdown(300);
+    setResendCooldown(60); // 60초 쿨다운
   };
   
   const handleBack = () => {
@@ -209,14 +198,14 @@ const OTPVerification = ({ onVerificationSuccess, email: propEmail, mode: propMo
               이전
             </Button>
             
-            <Button 
+            <Button
               type="button"
               variant="secondary"
               fullWidth
-              loading={resendLoading}
+              disabled={resendCooldown > 0}
               onClick={handleResend}
             >
-              재발송
+              {resendCooldown > 0 ? `재발송 (${resendCooldown}초)` : '재발송'}
             </Button>
           </div>
         </form>

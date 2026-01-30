@@ -46,7 +46,7 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
       newErrors.password = '비밀번호를 입력해주세요.';
       newShakeFields.password = true;
     } else if (!validatePassword(formData.password)) {
-      newErrors.password = '비밀번호는 8자 이상이어야 합니다.';
+      newErrors.password = '8자 이상, 대/소문자, 숫자, 특수문자를 포함해주세요.';
       newShakeFields.password = true;
     }
 
@@ -189,7 +189,7 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
                 onKeyDown={(e) => handleKeyDown(e, confirmPasswordRef)}
                 onFocus={() => handleFocus('password')}
                 onBlur={handleBlur}
-                placeholder="8자 이상 입력해주세요"
+                placeholder="대/소문자, 숫자, 특수문자 포함 8자 이상"
                 className={`bg-white dark:bg-gray-700 border text-gray-900 dark:text-white rounded-lg block w-full p-2.5 placeholder-gray-400 dark:placeholder-gray-400 transition-all duration-300 ease-in-out ${
                   errors.password
                     ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20'

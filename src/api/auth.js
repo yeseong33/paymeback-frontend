@@ -14,7 +14,6 @@ export const authAPI = {
   },
 
   resendVerification: (email) => {
-    console.log('Sending resendVerification request with email:', email);
-    return api.post(`/auth/resend-otp?email=${encodeURIComponent(email)}`);
+    return api.post('/auth/resend-otp', { email });
   }
 };

@@ -59,12 +59,10 @@ const LoginForm = ({ onSwitchToSignup }) => {
       
       // OTP 인증이 필요한 경우 OTP 인증 페이지로 이동
       if (response?.requiresOTP) {
-        console.log('OTP required, navigating to verification page');
-        navigate('/auth', { 
-          state: { 
+        navigate('/auth', {
+          state: {
             view: 'otp',
             email: formData.email,
-            password: formData.password,
             mode: 'signin'
           },
           replace: true
@@ -80,26 +78,17 @@ const LoginForm = ({ onSwitchToSignup }) => {
       }
       
     } catch (error) {
-      console.error('Login error:', error);
       
       // U004 에러는 authStore에서 자동으로 처리됨
       if (error.code === 'U004') {
-        console.log('U004 error detected, attempting navigation');
         toast.success('인증 코드가 발송되었습니다. 이메일을 확인해주세요.');
-        console.log('Navigating with state:', { 
-          view: 'otp',
-          email: formData.email,
-          password: formData.password,
-          mode: 'signin'
-        });
-        navigate('/auth', { 
-          state: { 
+        navigate('/auth', {
+          state: {
             view: 'otp',
             email: formData.email,
-            password: formData.password,
             mode: 'signin'
           },
-          replace: true  // 강제로 현재 history를 대체
+          replace: true
         });
         return;
       }
@@ -144,12 +133,10 @@ const LoginForm = ({ onSwitchToSignup }) => {
   return (
     <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-white dark:bg-gray-900 transition-colors duration-200">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <img
-            alt="Your Company"
-            src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
-            className="mx-auto h-10 w-auto"
-          />
-          <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">
+          <h1 className="text-center text-3xl font-bold text-primary-500 dark:text-primary-400">
+            Pay Me Back
+          </h1>
+          <h2 className="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">
             Sign in
           </h2>
         </div>

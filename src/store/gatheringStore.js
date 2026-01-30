@@ -22,24 +22,20 @@ export const useGatheringStore = create((set, get) => ({
       const response = await gatheringService.createGathering(gatheringData);
       // API 응답 구조: { success: true, data: {...} }
       let gathering = response?.data || response;
-      console.log('createGathering response:', gathering);
 
       // 생성자를 참여자에 자동 추가
       if (gathering?.qrCode) {
         try {
           const joinResponse = await gatheringService.joinGathering(gathering.qrCode);
           gathering = joinResponse?.data || joinResponse || gathering;
-          console.log('Owner joined as participant:', gathering);
         } catch (joinError) {
           // 이미 참여자인 경우 등 에러 무시
-          console.log('Owner join skipped:', joinError.message);
         }
       }
 
       set({ currentGathering: gathering, loading: false });
       return gathering;
     } catch (error) {
-      console.log('Failed to create gathering:', error);
       // API 에러를 그대로 전달
       set({ error: error.message, loading: false });
       throw error;
@@ -52,11 +48,9 @@ export const useGatheringStore = create((set, get) => ({
       const response = await gatheringService.getGathering(id);
       // API 응답 구조: { success: true, data: {...} }
       const gathering = response?.data || response;
-      console.log('getGathering response:', gathering);
       set({ currentGathering: gathering, loading: false });
       return gathering;
     } catch (error) {
-      console.log('Failed to get gathering:', error);
       // API 에러를 그대로 전달
       set({ error: error.message, loading: false });
       throw error;
@@ -69,7 +63,6 @@ export const useGatheringStore = create((set, get) => ({
       const response = await gatheringService.joinGathering(qrCode);
       // API 응답 구조: { success: true, data: {...} }
       const gathering = response?.data || response;
-      console.log('joinGathering response:', gathering);
       set({ currentGathering: gathering, loading: false });
       return gathering;
     } catch (error) {
@@ -87,16 +80,10 @@ export const useGatheringStore = create((set, get) => ({
         gatheringService.getParticipatedGatherings()
       ]);
 
-      console.log('myGatherings response:', myGatherings);
-      console.log('participatedGatherings response:', participatedGatherings);
-
       // API 응답 구조: { success: true, data: { content: [...] } }
       // service에서 response.data를 반환하므로 여기서는 .data.content로 접근
       const myContent = myGatherings?.data?.content || myGatherings?.content || [];
       const participatedContent = participatedGatherings?.data?.content || participatedGatherings?.content || [];
-
-      console.log('myContent:', myContent);
-      console.log('participatedContent:', participatedContent);
 
       // id 기준으로 중복 제거
       const gatheringMap = new Map();
@@ -107,7 +94,6 @@ export const useGatheringStore = create((set, get) => ({
       });
 
       const allGatherings = Array.from(gatheringMap.values());
-      console.log('allGatherings:', allGatherings);
 
       // createdAt 기준 정렬 (최신순)
       allGatherings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -115,7 +101,6 @@ export const useGatheringStore = create((set, get) => ({
       set({ gatherings: allGatherings, loading: false });
       return { content: allGatherings };
     } catch (error) {
-      console.log('Failed to fetch gatherings:', error);
       // API 에러를 그대로 전달
       set({ error: error.message, loading: false });
       throw error;
@@ -128,7 +113,6 @@ export const useGatheringStore = create((set, get) => ({
       const response = await gatheringService.createPaymentRequest(gatheringId, totalAmount);
       // API 응답 구조: { success: true, data: {...} }
       const gathering = response?.data || response;
-      console.log('createPaymentRequest response:', gathering);
       set({ currentGathering: gathering, loading: false });
       return gathering;
     } catch (error) {
@@ -145,7 +129,6 @@ export const useGatheringStore = create((set, get) => ({
       set({ currentGathering: gathering, loading: false });
       return gathering;
     } catch (error) {
-      console.log('Failed to update gathering:', error);
       set({ error: error.message, loading: false });
       throw error;
     }

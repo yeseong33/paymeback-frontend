@@ -10,7 +10,6 @@ export const authService = {
 
   async signIn(credentials) {
     const response = await authAPI.signIn(credentials);
-    console.log('API Response:', response); // 응답 구조 확인용
     
     // ApiResponse 구조에 맞게 데이터 접근
     const { accessToken } = response.data.data;
@@ -53,7 +52,13 @@ export const authService = {
 
   getStoredUser() {
     const userStr = localStorage.getItem(STORAGE_KEYS.USER);
-    return userStr ? JSON.parse(userStr) : null;
+    if (!userStr) return null;
+    try {
+      return JSON.parse(userStr);
+    } catch {
+      localStorage.removeItem(STORAGE_KEYS.USER);
+      return null;
+    }
   },
 
   setStoredUser(user) {

@@ -51,8 +51,6 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.log('API Error Response:', error.response?.data);  // 에러 응답 로깅
-
     if (error.response?.status === 401) {
       // Token expired or invalid
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);

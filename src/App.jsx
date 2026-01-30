@@ -7,20 +7,10 @@ import MainPage from './pages/MainPage';
 import GatheringPage from './pages/GatheringPage';
 import PaymentPage from './pages/PaymentPage';
 import ProfilePage from './pages/ProfilePage';
-import Loading from './components/common/Loading';
 
 function App() {
-  const { user, loading, needsOTPVerification, pendingCredentials } = useAuthStore();
+  const { user, needsOTPVerification, pendingCredentials } = useAuthStore();
   const location = useLocation();
-
-  // 로딩 중일 때
-  // if (loading) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900 transition-colors duration-200">
-  //       <Loading />
-  //     </div>
-  //   );
-  // }
 
   // OTP 인증이 필요하고 현재 인증 페이지가 아닐 때
   if (needsOTPVerification && location.pathname !== '/auth') {
@@ -28,10 +18,9 @@ function App() {
       <Navigate 
         to="/auth" 
         replace 
-        state={{ 
+        state={{
           view: 'otp',
           email: pendingCredentials?.email,
-          password: pendingCredentials?.password,
           mode: 'signin'
         }} 
       />

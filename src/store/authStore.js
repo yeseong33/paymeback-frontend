@@ -39,7 +39,6 @@ export const useAuthStore = create((set, get) => ({
         pendingCredentials: null
       });
     } catch (error) {
-      console.log('Auth initialization error:', error);
       // 에러 발생 시 모든 인증 정보 삭제
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.USER);
@@ -71,7 +70,7 @@ export const useAuthStore = create((set, get) => ({
       if (response.requiresOTP) {
         set({
           needsOTPVerification: true,
-          pendingCredentials: credentials,
+          pendingCredentials: { email: credentials.email },
           isAuthenticated: false,
           user: null,
           loading: false
@@ -94,21 +93,16 @@ export const useAuthStore = create((set, get) => ({
         throw new Error('로그인 응답에 토큰이 없습니다.');
       }
     } catch (error) {
-      console.log('Sign in failed:', error);
-      
       // OTP 인증이 필요한 경우 (에러로 받은 경우)
       if (error.code === 'U004') {
-        console.log('Received U004 error, credentials:', credentials);
-
         // OTP 코드 비동기 발송 (응답을 기다리지 않음)
         authService.resendOTP(credentials.email)
-          .then(() => console.log('Successfully sent OTP'))
-          .catch((resendError) => console.error('Failed to send OTP:', resendError));
+          .catch((err) => console.error('OTP 발송 실패:', err.message));
 
         // 즉시 상태 업데이트 및 OTP 페이지로 이동
         set({
           needsOTPVerification: true,
-          pendingCredentials: credentials,
+          pendingCredentials: { email: credentials.email },
           isAuthenticated: false,
           user: null,
           loading: false
