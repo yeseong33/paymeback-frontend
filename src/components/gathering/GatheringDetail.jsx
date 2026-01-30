@@ -324,8 +324,8 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
       {/* 축하 애니메이션 */}
       <CelebrationOverlay show={!!celebrationType} type={celebrationType} onComplete={() => setCelebrationType(null)} />
 
-      {/* 상단 헤더 (간소화) */}
-      <div className="card">
+      {/* 상단 헤더 */}
+      <div className="px-5 py-4 bg-white dark:bg-gray-800/50 rounded-2xl shadow-[0_2px_8px_0_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold text-gray-900 dark:text-white truncate">{gathering.title}</h1>
@@ -346,7 +346,7 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
           {isOwner && (
             <button
               onClick={() => setShowQR(true)}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               <QrCode size={20} />
             </button>
@@ -502,12 +502,13 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
       })()}
 
       {/* 탭 네비게이션 */}
-      <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+      {/* 탭 네비게이션 */}
+      <div className="flex bg-gray-100 dark:bg-gray-800/50 rounded-2xl p-1.5 shadow-[0_2px_8px_0_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
         <button
           onClick={() => setActiveTab('expense')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium rounded-md transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium rounded-xl transition-all ${
             activeTab === 'expense'
-              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-[0_2px_8px_0_rgba(0,0,0,0.08)]'
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
           }`}
         >
@@ -516,9 +517,9 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
         </button>
         <button
           onClick={() => setActiveTab('participants')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium rounded-md transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium rounded-xl transition-all ${
             activeTab === 'participants'
-              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-[0_2px_8px_0_rgba(0,0,0,0.08)]'
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
           }`}
         >
@@ -527,9 +528,9 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
         </button>
         <button
           onClick={() => setActiveTab('settings')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium rounded-md transition-colors ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium rounded-xl transition-all ${
             activeTab === 'settings'
-              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+              ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-[0_2px_8px_0_rgba(0,0,0,0.08)]'
               : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
           }`}
         >
@@ -542,7 +543,7 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
       {activeTab === 'expense' && (
         <div className="space-y-4">
           {/* 지출 내역 */}
-          <div className="card">
+          <div className="px-5 py-4 bg-white dark:bg-gray-800/50 rounded-2xl shadow-[0_2px_8px_0_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold text-gray-900 dark:text-white">지출 내역</h3>
               {expenses.length > 0 && (
@@ -561,13 +562,13 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
                   <div
                     key={expense.id}
                     onClick={() => setSelectedExpense(expense)}
-                    className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-700/50 rounded-xl cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"
                   >
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-gray-900 dark:text-white">
                         {expense.totalAmount?.toLocaleString()}원
                       </span>
-                      <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded">
+                      <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg">
                         {CATEGORY_LABELS[expense.category] || expense.category}
                       </span>
                     </div>
@@ -602,27 +603,27 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
       )}
 
       {activeTab === 'participants' && (
-        <div className="card">
+        <div className="px-5 py-4 bg-white dark:bg-gray-800/50 rounded-2xl shadow-[0_2px_8px_0_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
           <h3 className="font-semibold mb-4 text-gray-900 dark:text-white">참여자 목록</h3>
 
           {gathering.participants && gathering.participants.length > 0 ? (
             <div className="space-y-2">
               {gathering.participants.map((participant, index) => (
-                <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div key={participant.id} className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-200">
                       {index + 1}
                     </div>
                     <span className="font-medium text-gray-900 dark:text-white">
                       {participant.user?.name || participant.name || '알 수 없음'}
                     </span>
                     {(participant.user?.email || participant.email) === gathering.owner?.email && (
-                      <span className="text-xs bg-black text-white px-2 py-1 rounded">방장</span>
+                      <span className="text-xs bg-gray-900 dark:bg-gray-600 text-white px-2 py-1 rounded-lg">방장</span>
                     )}
                   </div>
 
                   {gathering.status === GATHERING_STATUS.PAYMENT_REQUESTED && (
-                    <span className={`text-xs px-2 py-1 rounded ${getStatusColor(participant.paymentStatus)}`}>
+                    <span className={`text-xs px-2 py-1 rounded-lg ${getStatusColor(participant.paymentStatus)}`}>
                       {participant.paymentStatus === 'COMPLETED' ? '결제완료' : '결제대기'}
                     </span>
                   )}
@@ -641,7 +642,7 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
       {activeTab === 'settings' && (
         <div className="space-y-4">
           {/* 모임 정보 */}
-          <div className="card">
+          <div className="px-5 py-4 bg-white dark:bg-gray-800/50 rounded-2xl shadow-[0_2px_8px_0_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
             <h3 className="font-semibold mb-4 text-gray-900 dark:text-white">모임 정보</h3>
             <div className="space-y-3 text-sm">
               {gathering.description && (
@@ -673,7 +674,7 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
           {isOwner && (
             <button
               onClick={() => setShowTimeEdit(true)}
-              className="w-full p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="w-full px-5 py-4 bg-white dark:bg-gray-800/50 rounded-2xl shadow-[0_2px_8px_0_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)] flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
             >
               <div className="flex items-center gap-3">
                 <Clock size={20} className="text-gray-400" />
@@ -683,10 +684,10 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
             </button>
           )}
 
-          {/* 지출 등록 (개발용) */}
+          {/* 지출 등록 */}
           <button
             onClick={() => setShowExpenseTest(true)}
-            className="w-full p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="w-full px-5 py-4 bg-white dark:bg-gray-800/50 rounded-2xl shadow-[0_2px_8px_0_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)] flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all"
           >
             <div className="flex items-center gap-3">
               <Plus size={20} className="text-gray-400" />
@@ -700,7 +701,7 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
       {/* 플로팅 버튼 - 지출 추가 */}
       <button
         onClick={() => setShowExpenseTest(true)}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg shadow-blue-500/30 flex items-center justify-center transition-all hover:scale-105 active:scale-95 z-40"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-blue-500 text-white rounded-2xl flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0 z-40 shadow-[0_4px_14px_0_rgba(59,130,246,0.4)] hover:shadow-[0_6px_20px_0_rgba(59,130,246,0.5)]"
       >
         <Plus size={28} />
       </button>
