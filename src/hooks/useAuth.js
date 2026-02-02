@@ -2,21 +2,98 @@ import { useEffect } from 'react';
 import { useAuthStore } from '../store/authStore';
 
 export const useAuth = () => {
-  const { user, loading, isAuthenticated, initialize, signUp, signIn, verifyOTP, resendOTP, logout } = useAuthStore();
+  const {
+    // 사용자 정보
+    user,
+    loading,
+    isAuthenticated,
+
+    // 인증 플로우 상태
+    authFlow,
+    flowData,
+    error,
+    webAuthnSupported,
+
+    // 초기화
+    initialize,
+
+    // 회원가입 플로우
+    signupStart,
+    signupVerify,
+    signupPasskeyFinish,
+
+    // 로그인 플로우
+    loginStart,
+    loginFinish,
+
+    // 계정 복구 플로우
+    recoveryStart,
+    recoveryVerify,
+    recoveryPasskeyFinish,
+
+    // OTP 재발송
+    resendOTP,
+
+    // 플로우 전환
+    setAuthFlow,
+    goToSignup,
+    goToLogin,
+    goToRecovery,
+    resetFlow,
+
+    // 로그아웃
+    logout,
+
+    // 에러 처리
+    setError,
+    clearError,
+  } = useAuthStore();
 
   useEffect(() => {
-    // 항상 초기화 실행 (토큰 체크는 initialize 내부에서 수행)
     initialize();
   }, [initialize]);
 
   return {
+    // 사용자 정보
     user,
     loading,
     isAuthenticated,
-    signUp,
-    signIn,
-    verifyOTP,
+
+    // 인증 플로우 상태
+    authFlow,
+    flowData,
+    error,
+    webAuthnSupported,
+
+    // 회원가입 플로우
+    signupStart,
+    signupVerify,
+    signupPasskeyFinish,
+
+    // 로그인 플로우
+    loginStart,
+    loginFinish,
+
+    // 계정 복구 플로우
+    recoveryStart,
+    recoveryVerify,
+    recoveryPasskeyFinish,
+
+    // OTP 재발송
     resendOTP,
+
+    // 플로우 전환
+    setAuthFlow,
+    goToSignup,
+    goToLogin,
+    goToRecovery,
+    resetFlow,
+
+    // 로그아웃
     logout,
+
+    // 에러 처리
+    setError,
+    clearError,
   };
 };

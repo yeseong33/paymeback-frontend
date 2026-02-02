@@ -1,14 +1,12 @@
 import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
-import { validateEmail, validatePassword, validateName } from '../../utils/validation';
+import { validateEmail, validateName } from '../../utils/validation';
 
-const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
-  const { signUp } = useAuth();
+const SignupForm = ({ onSwitchToLogin }) => {
+  const { signupStart, webAuthnSupported } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    confirmPassword: '',
     name: '',
   });
   const [errors, setErrors] = useState({});
@@ -16,11 +14,8 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
 
-  // Input refs for focus management
   const nameRef = useRef(null);
   const emailRef = useRef(null);
-  const passwordRef = useRef(null);
-  const confirmPasswordRef = useRef(null);
 
   const validateForm = () => {
     const newErrors = {};
@@ -42,26 +37,9 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
       newShakeFields.email = true;
     }
 
-    if (!formData.password) {
-      newErrors.password = '비밀번호를 입력해주세요.';
-      newShakeFields.password = true;
-    } else if (!validatePassword(formData.password)) {
-      newErrors.password = '8자 이상, 대/소문자, 숫자, 특수문자를 포함해주세요.';
-      newShakeFields.password = true;
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = '비밀번호 확인을 입력해주세요.';
-      newShakeFields.confirmPassword = true;
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
-      newShakeFields.confirmPassword = true;
-    }
-
     setErrors(newErrors);
     setShakeFields(newShakeFields);
 
-    // shake 애니메이션 후 상태 초기화
     if (Object.keys(newShakeFields).length > 0) {
       setTimeout(() => setShakeFields({}), 500);
     }
@@ -76,11 +54,10 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
 
     setLoading(true);
     try {
-      await signUp(formData);
+      await signupStart({ email: formData.email, name: formData.name });
       toast.success('인증번호를 전송했습니다. 이메일을 확인해주세요.');
-      onSignupSuccess(formData.email);
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || '회원가입 요청 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -88,11 +65,10 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: '' }));
     }
   };
 
@@ -113,16 +89,54 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
     setFocusedField(null);
   };
 
+  if (!webAuthnSupported) {
+    return (
+      <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0 bg-white dark:bg-gray-900 transition-colors duration-200">
+        <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
+          Pay Me Back
+        </h1>
+        <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 md:mt-0 sm:max-w-md xl:p-0 transition-colors duration-200 mt-6">
+          <div className="p-6 space-y-4 md:space-y-6 sm:p-8 text-center">
+            <div className="text-red-500 dark:text-red-400">
+              <svg
+                className="w-16 h-16 mx-auto mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
+              </svg>
+              <h2 className="text-lg font-semibold mb-2">Passkey 미지원 브라우저</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-sm">
+                이 브라우저는 Passkey(WebAuthn)를 지원하지 않습니다.
+                <br />
+                최신 버전의 Chrome, Safari, Firefox, Edge를 사용해주세요.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0 bg-white dark:bg-gray-900 transition-colors duration-200">
-      <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
-        Pay Me Back
+      <h1 className="text-2xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-3xl mb-8">
+        회원가입
       </h1>
-      <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 md:mt-0 sm:max-w-md xl:p-0 transition-colors duration-200 mt-6">
+      <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 sm:max-w-md xl:p-0 transition-colors duration-200">
         <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
           <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit} noValidate>
             <div>
-              <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+              <label
+                htmlFor="name"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >
                 이름
               </label>
               <input
@@ -148,8 +162,12 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
               )}
             </div>
+
             <div>
-              <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+              <label
+                htmlFor="email"
+                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >
                 이메일
               </label>
               <input
@@ -159,7 +177,6 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
                 id="email"
                 value={formData.email}
                 onChange={handleChange}
-                onKeyDown={(e) => handleKeyDown(e, passwordRef)}
                 onFocus={() => handleFocus('email')}
                 onBlur={handleBlur}
                 className={`bg-white dark:bg-gray-700 border text-gray-900 dark:text-white rounded-lg block w-full p-2.5 placeholder-gray-400 dark:placeholder-gray-400 transition-all duration-300 ease-in-out ${
@@ -175,66 +192,15 @@ const SignupForm = ({ onSignupSuccess, onSwitchToLogin }) => {
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
               )}
             </div>
-            <div>
-              <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                비밀번호
-              </label>
-              <input
-                ref={passwordRef}
-                type="password"
-                name="password"
-                id="password"
-                value={formData.password}
-                onChange={handleChange}
-                onKeyDown={(e) => handleKeyDown(e, confirmPasswordRef)}
-                onFocus={() => handleFocus('password')}
-                onBlur={handleBlur}
-                placeholder="대/소문자, 숫자, 특수문자 포함 8자 이상"
-                className={`bg-white dark:bg-gray-700 border text-gray-900 dark:text-white rounded-lg block w-full p-2.5 placeholder-gray-400 dark:placeholder-gray-400 transition-all duration-300 ease-in-out ${
-                  errors.password
-                    ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20'
-                    : focusedField === 'password'
-                      ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/20 dark:ring-primary-400/20 scale-[1.02] shadow-lg'
-                      : 'border-gray-300 dark:border-gray-600'
-                } ${shakeFields.password ? 'animate-shake' : ''}`}
-              />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
-              )}
-            </div>
-            <div>
-              <label htmlFor="confirmPassword" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                비밀번호 확인
-              </label>
-              <input
-                ref={confirmPasswordRef}
-                type="password"
-                name="confirmPassword"
-                id="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                onFocus={() => handleFocus('confirmPassword')}
-                onBlur={handleBlur}
-                placeholder="비밀번호를 다시 입력해주세요"
-                className={`bg-white dark:bg-gray-700 border text-gray-900 dark:text-white rounded-lg block w-full p-2.5 placeholder-gray-400 dark:placeholder-gray-400 transition-all duration-300 ease-in-out ${
-                  errors.confirmPassword
-                    ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20'
-                    : focusedField === 'confirmPassword'
-                      ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/20 dark:ring-primary-400/20 scale-[1.02] shadow-lg'
-                      : 'border-gray-300 dark:border-gray-600'
-                } ${shakeFields.confirmPassword ? 'animate-shake' : ''}`}
-              />
-              {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.confirmPassword}</p>
-              )}
-            </div>
+
             <button
               type="submit"
               disabled={loading}
               className="w-full text-white bg-primary-500 dark:bg-primary-500 hover:bg-primary-600 dark:hover:bg-primary-400 focus:ring-4 focus:outline-none focus:ring-primary-300 dark:focus:ring-primary-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
-              {loading ? '회원가입 중...' : '회원가입'}
+              {loading ? '처리중...' : '인증번호 받기'}
             </button>
+
             <p className="text-sm font-light text-gray-500 dark:text-gray-400">
               이미 계정이 있으신가요?{' '}
               <button

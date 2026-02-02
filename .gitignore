@@ -102,3 +102,5 @@ ehthumbs.db
 *.swp
 *.swo
 *~
+
+.claude

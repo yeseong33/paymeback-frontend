@@ -1,12 +1,10 @@
 import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { validateEmail } from '../../utils/validation';
 
-const LoginForm = ({ onSwitchToSignup, onSwitchToRecovery }) => {
-  const { loginStart, loginFinish, webAuthnSupported, resetFlow } = useAuth();
-  const navigate = useNavigate();
+const RecoveryForm = ({ onSwitchToLogin }) => {
+  const { recoveryStart, webAuthnSupported } = useAuth();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [shakeField, setShakeField] = useState(false);
@@ -40,25 +38,10 @@ const LoginForm = ({ onSwitchToSignup, onSwitchToRecovery }) => {
     setError('');
 
     try {
-      // 1. 이메일로 로그인 시작 - challenge 발급
-      await loginStart({ email });
-
-      // 2. 바로 Passkey 인증 수행
-      await loginFinish();
-
-      toast.success('로그인되었습니다.');
-      navigate('/main', { replace: true });
+      await recoveryStart({ email });
+      toast.success('인증번호를 전송했습니다. 이메일을 확인해주세요.');
     } catch (err) {
-      // 실패 시 상태 초기화
-      resetFlow();
-
-      if (err.message?.includes('찾을 수 없') || err.code === 'USER_NOT_FOUND') {
-        toast.error('등록되지 않은 이메일입니다.');
-      } else if (err.code === 'PASSKEY_CANCELLED' || err.name === 'NotAllowedError') {
-        toast.error('인증이 취소되었습니다.');
-      } else {
-        toast.error(err.message || '로그인 중 오류가 발생했습니다.');
-      }
+      toast.error(err.message || '요청 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -110,8 +93,11 @@ const LoginForm = ({ onSwitchToSignup, onSwitchToRecovery }) => {
         <h1 className="text-center text-3xl font-bold text-primary-500 dark:text-primary-400">
           Pay Me Back
         </h1>
-        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-          이메일을 입력하고 Passkey로 로그인하세요
+        <h2 className="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">
+          계정 복구
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          이메일 인증 후 새 Passkey를 등록합니다
         </p>
       </div>
 
@@ -120,9 +106,9 @@ const LoginForm = ({ onSwitchToSignup, onSwitchToRecovery }) => {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-900 dark:text-gray-200"
+              className="block text-sm/6 font-medium text-gray-900 dark:text-gray-200"
             >
-              이메일
+              이메일 주소
             </label>
             <div className="mt-2">
               <input
@@ -130,95 +116,69 @@ const LoginForm = ({ onSwitchToSignup, onSwitchToRecovery }) => {
                 id="email"
                 name="email"
                 type="email"
-                autoComplete="email webauthn"
+                autoComplete="email"
                 value={email}
                 onChange={handleChange}
                 onFocus={() => setFocusedField(true)}
                 onBlur={() => setFocusedField(false)}
                 disabled={loading}
-                placeholder="name@example.com"
-                className={`block w-full rounded-md border bg-white dark:bg-gray-800 px-3 py-2 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 sm:text-sm transition-all duration-300 ease-in-out ${
+                className={`block w-full rounded-md border bg-white dark:bg-gray-800 px-3 py-1.5 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 sm:text-sm/6 transition-all duration-300 ease-in-out ${
                   error
                     ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20'
                     : focusedField
                       ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/20 dark:ring-primary-400/20 scale-[1.02] shadow-lg'
                       : 'border-gray-300 dark:border-gray-600'
                 } ${shakeField ? 'animate-shake' : ''} ${loading ? 'opacity-50' : ''}`}
+                placeholder="가입한 이메일 주소를 입력하세요"
               />
               {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex w-full justify-center items-center rounded-md bg-primary-500 dark:bg-primary-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-600 dark:hover:bg-primary-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:focus-visible:outline-primary-400 disabled:opacity-50 transition-colors duration-200"
-          >
-            {loading ? (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                인증 중...
-              </>
-            ) : (
-              <>
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-                  />
-                </svg>
-                로그인
-              </>
-            )}
-          </button>
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex w-full justify-center rounded-md bg-primary-500 dark:bg-primary-500 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-primary-600 dark:hover:bg-primary-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:focus-visible:outline-primary-400 disabled:opacity-50 transition-colors duration-200"
+            >
+              {loading ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  처리중...
+                </>
+              ) : (
+                '인증번호 받기'
+              )}
+            </button>
+          </div>
         </form>
 
-        {/* 계정 복구 링크 */}
-        <div className="mt-6">
+        <p className="mt-10 text-center text-sm/6 text-gray-500 dark:text-gray-400">
           <button
             type="button"
-            onClick={onSwitchToRecovery}
-            className="w-full text-center text-sm font-medium text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300"
-          >
-            Passkey를 분실하셨나요?
-          </button>
-        </div>
-
-        {/* 회원가입 링크 */}
-        <p className="mt-10 text-center text-sm text-gray-500 dark:text-gray-400">
-          계정이 없으신가요?{' '}
-          <button
-            type="button"
-            onClick={onSwitchToSignup}
+            onClick={onSwitchToLogin}
             className="font-semibold text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 underline bg-transparent border-none p-0 cursor-pointer"
           >
-            회원가입
+            로그인으로 돌아가기
           </button>
         </p>
       </div>
@@ -226,4 +186,4 @@ const LoginForm = ({ onSwitchToSignup, onSwitchToRecovery }) => {
   );
 };
 
-export default LoginForm;
+export default RecoveryForm;

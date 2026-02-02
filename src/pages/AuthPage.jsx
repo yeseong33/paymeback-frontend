@@ -1,74 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
 import SignupForm from '../components/auth/SignupForm';
 import OTPVerification from '../components/auth/OTPVerification';
+import PasskeyRegistration from '../components/auth/PasskeyRegistration';
+import RecoveryForm from '../components/auth/RecoveryForm';
 import { useAuth } from '../hooks/useAuth';
+import { AUTH_FLOW } from '../utils/constants';
 
 const AuthPage = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  const initialView = location.state?.view || 'login';
-  const [currentView, setCurrentView] = useState(initialView); // 'login', 'signup', 'otp'
+  const {
+    isAuthenticated,
+    authFlow,
+    goToSignup,
+    goToLogin,
+    goToRecovery,
+    resetFlow,
+  } = useAuth();
 
   // 인증된 사용자는 메인 페이지로 리다이렉트
   useEffect(() => {
-    if (isAuthenticated && currentView !== 'otp') {
+    if (isAuthenticated) {
       navigate('/main', { replace: true });
     }
-  }, [isAuthenticated, navigate, currentView]);
-  
-  useEffect(() => {
-    if (location.state?.view) {
-      setCurrentView(location.state.view);
-    }
-  }, [location.state]);
-  const [signupEmail, setSignupEmail] = useState('');
+  }, [isAuthenticated, navigate]);
+
 
   const handleSwitchToSignup = () => {
-    setCurrentView('signup');
+    goToSignup();
   };
 
   const handleSwitchToLogin = () => {
-    setCurrentView('login');
+    goToLogin();
   };
 
-  const handleSignupSuccess = (email) => {
-    setSignupEmail(email);
-    setCurrentView('otp');
+  const handleSwitchToRecovery = () => {
+    goToRecovery();
   };
 
-  const handleOTPVerificationSuccess = () => {
-    setCurrentView('login');
+  const handleBack = () => {
+    resetFlow();
+    goToLogin();
   };
 
-  const handleOTPBack = () => {
-    setCurrentView('signup');
+  const renderContent = () => {
+    switch (authFlow) {
+      // 로그인 플로우
+      case AUTH_FLOW.LOGIN_EMAIL:
+      case AUTH_FLOW.LOGIN_PASSKEY:
+        return (
+          <LoginForm
+            onSwitchToSignup={handleSwitchToSignup}
+            onSwitchToRecovery={handleSwitchToRecovery}
+          />
+        );
+
+      // 회원가입 플로우
+      case AUTH_FLOW.SIGNUP_EMAIL:
+        return <SignupForm onSwitchToLogin={handleSwitchToLogin} />;
+
+      case AUTH_FLOW.SIGNUP_OTP:
+        return <OTPVerification onBack={handleBack} />;
+
+      case AUTH_FLOW.SIGNUP_PASSKEY:
+        return <PasskeyRegistration onBack={handleBack} />;
+
+      // 계정 복구 플로우
+      case AUTH_FLOW.RECOVERY_EMAIL:
+        return <RecoveryForm onSwitchToLogin={handleSwitchToLogin} />;
+
+      case AUTH_FLOW.RECOVERY_OTP:
+        return <OTPVerification onBack={handleBack} />;
+
+      case AUTH_FLOW.RECOVERY_PASSKEY:
+        return <PasskeyRegistration onBack={handleBack} />;
+
+      // 기본값: 로그인 화면
+      case AUTH_FLOW.IDLE:
+      default:
+        return (
+          <LoginForm
+            onSwitchToSignup={handleSwitchToSignup}
+            onSwitchToRecovery={handleSwitchToRecovery}
+          />
+        );
+    }
   };
 
   return (
     <div className="page bg-white dark:bg-gray-900 transition-colors duration-200">
-      {currentView === 'login' && (
-        <LoginForm onSwitchToSignup={handleSwitchToSignup} />
-      )}
-      
-      {currentView === 'signup' && (
-        <SignupForm
-          onSignupSuccess={handleSignupSuccess}
-          onSwitchToLogin={handleSwitchToLogin}
-        />
-      )}
-      
-      {currentView === 'otp' && (
-        <OTPVerification
-          email={location.state?.email || signupEmail}
-          mode={location.state?.mode || 'signup'}
-          onVerificationSuccess={handleOTPVerificationSuccess}
-          onBack={handleOTPBack}
-        />
-      )}
-
+      {renderContent()}
     </div>
   );
 };

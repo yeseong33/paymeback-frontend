@@ -1,145 +1,347 @@
 import { create } from 'zustand';
 import { authService } from '../services/authService';
-import { STORAGE_KEYS } from '../utils/constants';
+import { STORAGE_KEYS, AUTH_FLOW } from '../utils/constants';
 
 export const useAuthStore = create((set, get) => ({
+  // 사용자 정보
   user: null,
-  loading: true,
   isAuthenticated: false,
-  needsOTPVerification: false,
-  pendingCredentials: null,
+  loading: true,
 
-  initialize: () => {
+  // 인증 플로우 상태
+  authFlow: AUTH_FLOW.IDLE,
+  flowData: {
+    email: null,
+    name: null,
+    passkeyOptions: null,
+  },
+  error: null,
+
+  // WebAuthn 지원 여부
+  webAuthnSupported: false,
+
+  // ==================== 초기화 ====================
+
+  initialize: async () => {
     try {
       const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       const storedUser = authService.getStoredUser();
-      
-      // 토큰이 없거나 사용자 정보가 없으면 로그아웃 상태로 초기화
+      const webAuthnSupported = authService.isWebAuthnSupported();
+
       if (!token || !storedUser) {
-        // 토큰이나 사용자 정보가 하나라도 없으면 둘 다 삭제
         localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
         localStorage.removeItem(STORAGE_KEYS.USER);
-        
-        set({ 
-          isAuthenticated: false, 
+
+        set({
+          isAuthenticated: false,
           user: null,
           loading: false,
-          needsOTPVerification: false,
-          pendingCredentials: null
+          webAuthnSupported,
         });
         return;
       }
 
-      // 토큰과 사용자 정보가 모두 있는 경우 로그인 상태로 초기화
-      set({ 
-        isAuthenticated: true, 
+      set({
+        isAuthenticated: true,
         user: storedUser,
         loading: false,
-        needsOTPVerification: false,
-        pendingCredentials: null
+        webAuthnSupported,
       });
     } catch (error) {
-      // 에러 발생 시 모든 인증 정보 삭제
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.USER);
-      
-      set({ 
-        isAuthenticated: false, 
+
+      set({
+        isAuthenticated: false,
         user: null,
         loading: false,
-        needsOTPVerification: false,
-        pendingCredentials: null
+        webAuthnSupported: authService.isWebAuthnSupported(),
       });
     }
   },
 
-  signUp: async (userData) => {
+  // ==================== 회원가입 플로우 ====================
+
+  /**
+   * 회원가입 시작 - 이메일 입력 → OTP 발송
+   */
+  signupStart: async ({ email, name }) => {
+    set({ loading: true, error: null });
     try {
-      const response = await authService.signUp(userData);
-      return response;
+      await authService.signupStart({ email, name });
+
+      set({
+        loading: false,
+        authFlow: AUTH_FLOW.SIGNUP_OTP,
+        flowData: { ...get().flowData, email, name },
+      });
+
+      return { success: true };
     } catch (error) {
+      set({ loading: false, error: error.message });
       throw error;
     }
   },
 
-  signIn: async (credentials) => {
+  /**
+   * 회원가입 OTP 검증 → Passkey 등록 화면으로
+   */
+  signupVerify: async ({ otpCode }) => {
+    const { email } = get().flowData;
+    set({ loading: true, error: null });
+
     try {
-      const response = await authService.signIn(credentials);
-      
-      // OTP 인증이 필요한 경우
-      if (response.requiresOTP) {
-        set({
-          needsOTPVerification: true,
-          pendingCredentials: { email: credentials.email },
-          isAuthenticated: false,
-          user: null,
-          loading: false
-        });
-        return response;
-      }
+      await authService.signupVerify({ email, otpCode });
 
-      // 로그인 성공
-      const { user, accessToken } = response;
-      if (accessToken) {
-        set({ 
-          user, 
-          isAuthenticated: true,
-          needsOTPVerification: false,
-          pendingCredentials: null,
-          loading: false
-        });
-        return response;
-      } else {
-        throw new Error('로그인 응답에 토큰이 없습니다.');
-      }
+      // Passkey 등록 시작 (challenge 발급)
+      const passkeyOptions = await authService.signupPasskeyStart();
+
+      set({
+        loading: false,
+        authFlow: AUTH_FLOW.SIGNUP_PASSKEY,
+        flowData: { ...get().flowData, passkeyOptions },
+      });
+
+      return { success: true };
     } catch (error) {
-      // OTP 인증이 필요한 경우 (에러로 받은 경우)
-      if (error.code === 'U004') {
-        // OTP 코드 비동기 발송 (응답을 기다리지 않음)
-        authService.resendOTP(credentials.email)
-          .catch((err) => console.error('OTP 발송 실패:', err.message));
+      set({ loading: false, error: error.message });
+      throw error;
+    }
+  },
 
-        // 즉시 상태 업데이트 및 OTP 페이지로 이동
-        set({
-          needsOTPVerification: true,
-          pendingCredentials: { email: credentials.email },
-          isAuthenticated: false,
-          user: null,
-          loading: false
-        });
+  /**
+   * Passkey 등록 완료 → 로그인 완료
+   */
+  signupPasskeyFinish: async () => {
+    const { passkeyOptions } = get().flowData;
+    set({ loading: true, error: null });
 
-        return {
-          message: '인증 코드가 발송되었습니다. 이메일을 확인해주세요.',
-          requiresOTP: true
-        };
+    try {
+      const { user } = await authService.signupPasskeyFinish(passkeyOptions);
+
+      set({
+        loading: false,
+        isAuthenticated: true,
+        user,
+        authFlow: AUTH_FLOW.IDLE,
+        flowData: { email: null, name: null, passkeyOptions: null },
+      });
+
+      return { success: true };
+    } catch (error) {
+      set({ loading: false, error: error.message });
+      throw error;
+    }
+  },
+
+  // ==================== 로그인 플로우 ====================
+
+  /**
+   * 로그인 시작 - Passkey 인증 프롬프트
+   * @param {{ email?: string }} data - email이 없으면 usernameless 로그인
+   */
+  loginStart: async ({ email } = {}) => {
+    set({ loading: true, error: null });
+
+    try {
+      // 인증 옵션 발급 (email이 없으면 usernameless 로그인)
+      const passkeyOptions = await authService.loginStart(email ? { email } : {});
+
+      set({
+        loading: false,
+        authFlow: AUTH_FLOW.LOGIN_PASSKEY,
+        flowData: { ...get().flowData, email: email || null, passkeyOptions },
+      });
+
+      return { success: true, passkeyOptions };
+    } catch (error) {
+      set({ loading: false, error: error.message });
+      throw error;
+    }
+  },
+
+  /**
+   * Passkey 인증 완료 → 로그인 완료
+   */
+  loginFinish: async () => {
+    const { passkeyOptions } = get().flowData;
+    set({ loading: true, error: null });
+
+    try {
+      const { user } = await authService.loginFinish(passkeyOptions);
+
+      set({
+        loading: false,
+        isAuthenticated: true,
+        user,
+        authFlow: AUTH_FLOW.IDLE,
+        flowData: { email: null, name: null, passkeyOptions: null },
+      });
+
+      return { success: true };
+    } catch (error) {
+      set({ loading: false, error: error.message });
+      throw error;
+    }
+  },
+
+  // ==================== 계정 복구 플로우 ====================
+
+  /**
+   * 계정 복구 시작 - 이메일 입력 → OTP 발송
+   */
+  recoveryStart: async ({ email }) => {
+    set({ loading: true, error: null });
+
+    try {
+      await authService.recoveryStart({ email });
+
+      set({
+        loading: false,
+        authFlow: AUTH_FLOW.RECOVERY_OTP,
+        flowData: { ...get().flowData, email },
+      });
+
+      return { success: true };
+    } catch (error) {
+      set({ loading: false, error: error.message });
+      throw error;
+    }
+  },
+
+  /**
+   * 계정 복구 OTP 검증 → 새 Passkey 등록 화면으로
+   */
+  recoveryVerify: async ({ otpCode }) => {
+    const { email } = get().flowData;
+    set({ loading: true, error: null });
+
+    try {
+      await authService.recoveryVerify({ email, otpCode });
+
+      // 새 Passkey 등록 시작 (challenge 발급)
+      const passkeyOptions = await authService.recoveryPasskeyStart();
+
+      set({
+        loading: false,
+        authFlow: AUTH_FLOW.RECOVERY_PASSKEY,
+        flowData: { ...get().flowData, passkeyOptions },
+      });
+
+      return { success: true };
+    } catch (error) {
+      set({ loading: false, error: error.message });
+      throw error;
+    }
+  },
+
+  /**
+   * 새 Passkey 등록 완료 → 로그인 완료
+   */
+  recoveryPasskeyFinish: async () => {
+    const { passkeyOptions } = get().flowData;
+    set({ loading: true, error: null });
+
+    try {
+      const { user } = await authService.recoveryPasskeyFinish(passkeyOptions);
+
+      set({
+        loading: false,
+        isAuthenticated: true,
+        user,
+        authFlow: AUTH_FLOW.IDLE,
+        flowData: { email: null, name: null, passkeyOptions: null },
+      });
+
+      return { success: true };
+    } catch (error) {
+      set({ loading: false, error: error.message });
+      throw error;
+    }
+  },
+
+  // ==================== OTP 재발송 ====================
+
+  resendOTP: async () => {
+    const { authFlow, flowData } = get();
+    const { email } = flowData;
+    set({ loading: true, error: null });
+
+    try {
+      if (authFlow === AUTH_FLOW.SIGNUP_OTP) {
+        await authService.resendSignupOTP(email);
+      } else if (authFlow === AUTH_FLOW.RECOVERY_OTP) {
+        await authService.resendRecoveryOTP(email);
       }
-      
-      // 기타 에러
+
       set({ loading: false });
+      return { success: true };
+    } catch (error) {
+      set({ loading: false, error: error.message });
       throw error;
     }
   },
 
-  verifyOTP: async (otpData) => {
-    try {
-      const response = await authService.verifyOTP(otpData);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+  // ==================== 플로우 전환 ====================
+
+  setAuthFlow: (flow) => {
+    set({ authFlow: flow, error: null });
   },
 
-  resendOTP: async (email) => {
-    try {
-      const response = await authService.resendOTP(email);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+  goToSignup: () => {
+    set({
+      authFlow: AUTH_FLOW.SIGNUP_EMAIL,
+      flowData: { email: null, name: null, passkeyOptions: null },
+      error: null,
+    });
   },
+
+  goToLogin: () => {
+    set({
+      authFlow: AUTH_FLOW.LOGIN_EMAIL,
+      flowData: { email: null, name: null, passkeyOptions: null },
+      error: null,
+    });
+  },
+
+  goToRecovery: () => {
+    set({
+      authFlow: AUTH_FLOW.RECOVERY_EMAIL,
+      flowData: { email: null, name: null, passkeyOptions: null },
+      error: null,
+    });
+  },
+
+  resetFlow: () => {
+    authService.clearSignupSession();
+    authService.clearRecoverySession();
+    set({
+      authFlow: AUTH_FLOW.IDLE,
+      flowData: { email: null, name: null, passkeyOptions: null },
+      error: null,
+    });
+  },
+
+  // ==================== 로그아웃 ====================
 
   logout: () => {
     authService.logout();
-    set({ user: null, isAuthenticated: false });
+    set({
+      user: null,
+      isAuthenticated: false,
+      authFlow: AUTH_FLOW.IDLE,
+      flowData: { email: null, name: null, passkeyOptions: null },
+      error: null,
+    });
+  },
+
+  // ==================== 에러 처리 ====================
+
+  setError: (error) => {
+    set({ error });
+  },
+
+  clearError: () => {
+    set({ error: null });
   },
 }));
