@@ -64,11 +64,12 @@ export const useAuthStore = create((set, get) => ({
 
   /**
    * 회원가입 시작 - 이메일 입력 → OTP 발송
+   * @param {{ email: string, name: string, recaptchaToken?: string, recaptchaVersion?: string }} data
    */
-  signupStart: async ({ email, name }) => {
+  signupStart: async ({ email, name, recaptchaToken, recaptchaVersion }) => {
     set({ loading: true, error: null });
     try {
-      await authService.signupStart({ email, name });
+      await authService.signupStart({ email, name, recaptchaToken, recaptchaVersion });
 
       set({
         loading: false,
@@ -189,12 +190,13 @@ export const useAuthStore = create((set, get) => ({
 
   /**
    * 계정 복구 시작 - 이메일 입력 → OTP 발송
+   * @param {{ email: string, recaptchaToken?: string, recaptchaVersion?: string }} data
    */
-  recoveryStart: async ({ email }) => {
+  recoveryStart: async ({ email, recaptchaToken, recaptchaVersion }) => {
     set({ loading: true, error: null });
 
     try {
-      await authService.recoveryStart({ email });
+      await authService.recoveryStart({ email, recaptchaToken, recaptchaVersion });
 
       set({
         loading: false,
@@ -262,16 +264,20 @@ export const useAuthStore = create((set, get) => ({
 
   // ==================== OTP 재발송 ====================
 
-  resendOTP: async () => {
+  /**
+   * OTP 재발송
+   * @param {{ recaptchaToken?: string, recaptchaVersion?: string }} options
+   */
+  resendOTP: async ({ recaptchaToken, recaptchaVersion } = {}) => {
     const { authFlow, flowData } = get();
-    const { email } = flowData;
+    const { email, name } = flowData;
     set({ loading: true, error: null });
 
     try {
       if (authFlow === AUTH_FLOW.SIGNUP_OTP) {
-        await authService.resendSignupOTP(email);
+        await authService.resendSignupOTP({ email, name, recaptchaToken, recaptchaVersion });
       } else if (authFlow === AUTH_FLOW.RECOVERY_OTP) {
-        await authService.resendRecoveryOTP(email);
+        await authService.resendRecoveryOTP({ email, recaptchaToken, recaptchaVersion });
       }
 
       set({ loading: false });

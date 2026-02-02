@@ -1,10 +1,25 @@
 import React, { useState, useRef } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
+import { useRecaptcha } from '../../hooks/useRecaptcha';
 import { validateEmail } from '../../utils/validation';
+import { RECAPTCHA } from '../../utils/constants';
 
 const RecoveryForm = ({ onSwitchToLogin }) => {
   const { recoveryStart, webAuthnSupported } = useAuth();
+  const {
+    executeRecaptcha,
+    showV2,
+    isV2Required,
+    v2Ref,
+    onV2Change,
+    onV2Expired,
+    resetV2,
+    isV2RequiredError,
+    isV2Ready,
+  } = useRecaptcha();
+
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [shakeField, setShakeField] = useState(false);
@@ -34,14 +49,31 @@ const RecoveryForm = ({ onSwitchToLogin }) => {
 
     if (!validateForm()) return;
 
+    // v2가 필요한데 아직 완료 안됐으면 경고
+    if (isV2Required && !isV2Ready) {
+      toast.error('보안 인증을 완료해주세요.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      await recoveryStart({ email });
+      // reCAPTCHA 토큰 생성
+      const { token: recaptchaToken, version: recaptchaVersion } = await executeRecaptcha('recovery');
+
+      await recoveryStart({ email, recaptchaToken, recaptchaVersion });
+
+      // 성공 시 v2 상태 리셋
+      resetV2();
       toast.success('인증번호를 전송했습니다. 이메일을 확인해주세요.');
     } catch (err) {
-      toast.error(err.message || '요청 중 오류가 발생했습니다.');
+      // v2 필요 에러인 경우
+      if (isV2RequiredError(err)) {
+        showV2();
+      } else {
+        toast.error(err.message || '요청 중 오류가 발생했습니다.');
+      }
     } finally {
       setLoading(false);
     }
@@ -135,10 +167,23 @@ const RecoveryForm = ({ onSwitchToLogin }) => {
             </div>
           </div>
 
+          {/* reCAPTCHA v2 (필요 시에만 표시) */}
+          {isV2Required && RECAPTCHA.V2_SITE_KEY && (
+            <div className="flex justify-center">
+              <ReCAPTCHA
+                ref={v2Ref}
+                sitekey={RECAPTCHA.V2_SITE_KEY}
+                onChange={onV2Change}
+                onExpired={onV2Expired}
+                theme="light"
+              />
+            </div>
+          )}
+
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (isV2Required && !isV2Ready)}
               className="flex w-full justify-center rounded-md bg-primary-500 dark:bg-primary-500 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-primary-600 dark:hover:bg-primary-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:focus-visible:outline-primary-400 disabled:opacity-50 transition-colors duration-200"
             >
               {loading ? (

@@ -1,10 +1,25 @@
 import React, { useState, useRef } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
+import { useRecaptcha } from '../../hooks/useRecaptcha';
 import { validateEmail, validateName } from '../../utils/validation';
+import { RECAPTCHA } from '../../utils/constants';
 
 const SignupForm = ({ onSwitchToLogin }) => {
   const { signupStart, webAuthnSupported } = useAuth();
+  const {
+    executeRecaptcha,
+    showV2,
+    isV2Required,
+    v2Ref,
+    onV2Change,
+    onV2Expired,
+    resetV2,
+    isV2RequiredError,
+    isV2Ready,
+  } = useRecaptcha();
+
   const [formData, setFormData] = useState({
     email: '',
     name: '',
@@ -52,12 +67,34 @@ const SignupForm = ({ onSwitchToLogin }) => {
 
     if (!validateForm()) return;
 
+    // v2가 필요한데 아직 완료 안됐으면 경고
+    if (isV2Required && !isV2Ready) {
+      toast.error('보안 인증을 완료해주세요.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await signupStart({ email: formData.email, name: formData.name });
+      // reCAPTCHA 토큰 생성
+      const { token: recaptchaToken, version: recaptchaVersion } = await executeRecaptcha('signup');
+
+      await signupStart({
+        email: formData.email,
+        name: formData.name,
+        recaptchaToken,
+        recaptchaVersion,
+      });
+
+      // 성공 시 v2 상태 리셋
+      resetV2();
       toast.success('인증번호를 전송했습니다. 이메일을 확인해주세요.');
     } catch (error) {
-      toast.error(error.message || '회원가입 요청 중 오류가 발생했습니다.');
+      // v2 필요 에러인 경우
+      if (isV2RequiredError(error)) {
+        showV2();
+      } else {
+        toast.error(error.message || '회원가입 요청 중 오류가 발생했습니다.');
+      }
     } finally {
       setLoading(false);
     }
@@ -149,13 +186,14 @@ const SignupForm = ({ onSwitchToLogin }) => {
                 onKeyDown={(e) => handleKeyDown(e, emailRef)}
                 onFocus={() => handleFocus('name')}
                 onBlur={handleBlur}
+                disabled={loading}
                 className={`bg-white dark:bg-gray-700 border text-gray-900 dark:text-white rounded-lg block w-full p-2.5 placeholder-gray-400 dark:placeholder-gray-400 transition-all duration-300 ease-in-out ${
                   errors.name
                     ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20'
                     : focusedField === 'name'
                       ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/20 dark:ring-primary-400/20 scale-[1.02] shadow-lg'
                       : 'border-gray-300 dark:border-gray-600'
-                } ${shakeFields.name ? 'animate-shake' : ''}`}
+                } ${shakeFields.name ? 'animate-shake' : ''} ${loading ? 'opacity-50' : ''}`}
                 placeholder="이름을 입력해주세요"
               />
               {errors.name && (
@@ -179,13 +217,14 @@ const SignupForm = ({ onSwitchToLogin }) => {
                 onChange={handleChange}
                 onFocus={() => handleFocus('email')}
                 onBlur={handleBlur}
+                disabled={loading}
                 className={`bg-white dark:bg-gray-700 border text-gray-900 dark:text-white rounded-lg block w-full p-2.5 placeholder-gray-400 dark:placeholder-gray-400 transition-all duration-300 ease-in-out ${
                   errors.email
                     ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20'
                     : focusedField === 'email'
                       ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/20 dark:ring-primary-400/20 scale-[1.02] shadow-lg'
                       : 'border-gray-300 dark:border-gray-600'
-                } ${shakeFields.email ? 'animate-shake' : ''}`}
+                } ${shakeFields.email ? 'animate-shake' : ''} ${loading ? 'opacity-50' : ''}`}
                 placeholder="name@company.com"
               />
               {errors.email && (
@@ -193,9 +232,22 @@ const SignupForm = ({ onSwitchToLogin }) => {
               )}
             </div>
 
+            {/* reCAPTCHA v2 (필요 시에만 표시) */}
+            {isV2Required && RECAPTCHA.V2_SITE_KEY && (
+              <div className="flex justify-center">
+                <ReCAPTCHA
+                  ref={v2Ref}
+                  sitekey={RECAPTCHA.V2_SITE_KEY}
+                  onChange={onV2Change}
+                  onExpired={onV2Expired}
+                  theme="light"
+                />
+              </div>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (isV2Required && !isV2Ready)}
               className="w-full text-white bg-primary-500 dark:bg-primary-500 hover:bg-primary-600 dark:hover:bg-primary-400 focus:ring-4 focus:outline-none focus:ring-primary-300 dark:focus:ring-primary-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
             >
               {loading ? '처리중...' : '인증번호 받기'}

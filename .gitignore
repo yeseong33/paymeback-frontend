@@ -19,10 +19,13 @@ dist-ssr
 
 # Environment variables
 .env
+.env.*
 .env.local
+.env.development
 .env.development.local
-.env.test.local
+.env.production
 .env.production.local
+.env.test.local
 
 # Cache directories
 .cache

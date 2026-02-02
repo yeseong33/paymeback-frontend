@@ -14,9 +14,10 @@ export const authService = {
 
   /**
    * 회원가입 시작 - 이메일로 OTP 발송
+   * @param {{ email: string, name: string, recaptchaToken?: string, recaptchaVersion?: string }} data
    */
-  async signupStart({ email, name }) {
-    const response = await authAPI.signupStart({ email, name });
+  async signupStart({ email, name, recaptchaToken, recaptchaVersion }) {
+    const response = await authAPI.signupStart({ email, name, recaptchaToken, recaptchaVersion });
     return response.data;
   },
 
@@ -156,9 +157,10 @@ export const authService = {
 
   /**
    * 계정 복구 시작 - OTP 발송
+   * @param {{ email: string, recaptchaToken?: string, recaptchaVersion?: string }} data
    */
-  async recoveryStart({ email }) {
-    const response = await authAPI.recoveryStart({ email });
+  async recoveryStart({ email, recaptchaToken, recaptchaVersion }) {
+    const response = await authAPI.recoveryStart({ email, recaptchaToken, recaptchaVersion });
     return response.data;
   },
 
@@ -231,6 +233,26 @@ export const authService = {
       }
       throw error;
     }
+  },
+
+  // ==================== OTP 재발송 ====================
+
+  /**
+   * 회원가입 OTP 재발송
+   * @param {{ email: string, name: string, recaptchaToken?: string, recaptchaVersion?: string }} data
+   */
+  async resendSignupOTP({ email, name, recaptchaToken, recaptchaVersion }) {
+    const response = await authAPI.signupStart({ email, name, recaptchaToken, recaptchaVersion });
+    return response.data;
+  },
+
+  /**
+   * 계정 복구 OTP 재발송
+   * @param {{ email: string, recaptchaToken?: string, recaptchaVersion?: string }} data
+   */
+  async resendRecoveryOTP({ email, recaptchaToken, recaptchaVersion }) {
+    const response = await authAPI.recoveryStart({ email, recaptchaToken, recaptchaVersion });
+    return response.data;
   },
 
   // ==================== WebAuthn 지원 확인 ====================

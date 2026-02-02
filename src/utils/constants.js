@@ -43,3 +43,18 @@ export const PAYMENT_STATUS_LABELS = {
 
 export const QR_CODE_EXPIRY_MINUTES = 30;
 export const PAYMENT_TIMEOUT_HOURS = 24;
+
+// reCAPTCHA 설정
+export const RECAPTCHA = {
+  V3_SITE_KEY: import.meta.env.VITE_RECAPTCHA_V3_SITE_KEY || '',
+  V2_SITE_KEY: import.meta.env.VITE_RECAPTCHA_V2_SITE_KEY || '',
+  VERSION: {
+    V2: 'v2',
+    V3: 'v3',
+  },
+};
+
+// reCAPTCHA v2 필요 에러 코드
+export const ERROR_CODES = {
+  RECAPTCHA_V2_REQUIRED: 'R002',
+};

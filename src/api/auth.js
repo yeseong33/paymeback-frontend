@@ -5,7 +5,7 @@ export const authAPI = {
 
   /**
    * 회원가입 시작 - 이메일로 OTP 발송
-   * @param {{ email: string, name: string }} data
+   * @param {{ email: string, name: string, recaptchaToken?: string, recaptchaVersion?: string }} data
    */
   signupStart: (data) => {
     return api.post('/auth/signup/start', data);
@@ -57,7 +57,7 @@ export const authAPI = {
 
   /**
    * 계정 복구 시작 - OTP 발송
-   * @param {{ email: string }} data
+   * @param {{ email: string, recaptchaToken?: string, recaptchaVersion?: string }} data
    */
   recoveryStart: (data) => {
     return api.post('/auth/recovery/start', data);

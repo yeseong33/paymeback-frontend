@@ -1,7 +1,9 @@
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import { useAuthStore } from './store/authStore';
+import { RECAPTCHA } from './utils/constants';
 import AuthPage from './pages/AuthPage';
 import MainPage from './pages/MainPage';
 import GatheringPage from './pages/GatheringPage';
@@ -28,6 +30,14 @@ function App() {
   }
 
   return (
+    <GoogleReCaptchaProvider
+      reCaptchaKey={RECAPTCHA.V3_SITE_KEY}
+      scriptProps={{
+        async: true,
+        defer: true,
+        appendTo: 'head',
+      }}
+    >
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
       <Toaster
         position="top-center"
@@ -77,6 +87,7 @@ function App() {
         <Route path="*" element={<Navigate to={user ? "/main" : "/auth"} replace />} />
       </Routes>
     </div>
+    </GoogleReCaptchaProvider>
   );
 }
 
