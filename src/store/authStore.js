@@ -24,13 +24,13 @@ export const useAuthStore = create((set, get) => ({
 
   initialize: async () => {
     try {
-      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      const token = sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
       const storedUser = authService.getStoredUser();
       const webAuthnSupported = authService.isWebAuthnSupported();
 
       if (!token || !storedUser) {
-        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.USER);
+        sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        sessionStorage.removeItem(STORAGE_KEYS.USER);
 
         set({
           isAuthenticated: false,
@@ -48,8 +48,8 @@ export const useAuthStore = create((set, get) => ({
         webAuthnSupported,
       });
     } catch (error) {
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.USER);
+      sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      sessionStorage.removeItem(STORAGE_KEYS.USER);
 
       set({
         isAuthenticated: false,

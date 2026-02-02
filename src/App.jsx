@@ -9,6 +9,7 @@ import MainPage from './pages/MainPage';
 import GatheringPage from './pages/GatheringPage';
 import PaymentPage from './pages/PaymentPage';
 import ProfilePage from './pages/ProfilePage';
+import PaymentMethodPage from './pages/PaymentMethodPage';
 
 function App() {
   const { user, needsOTPVerification, pendingCredentials } = useAuthStore();
@@ -82,6 +83,10 @@ function App() {
         <Route
           path="/profile"
           element={user ? <ProfilePage /> : <Navigate to="/auth" replace />}
+        />
+        <Route
+          path="/payment-methods"
+          element={user ? <PaymentMethodPage /> : <Navigate to="/auth" replace />}
         />
         <Route path="/" element={<Navigate to={user ? "/main" : "/auth"} replace />} />
         <Route path="*" element={<Navigate to={user ? "/main" : "/auth"} replace />} />

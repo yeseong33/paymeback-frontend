@@ -75,7 +75,7 @@ export const authService = {
       const { accessToken, user } = response.data.data;
 
       // 토큰 저장 및 signupToken 삭제
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, `Bearer ${accessToken}`);
+      sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, `Bearer ${accessToken}`);
       this.setStoredUser(user);
       sessionStorage.removeItem(STORAGE_KEYS.SIGNUP_TOKEN);
 
@@ -137,7 +137,7 @@ export const authService = {
       const { accessToken, user } = response.data.data;
 
       // 토큰 저장
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, `Bearer ${accessToken}`);
+      sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, `Bearer ${accessToken}`);
       this.setStoredUser(user);
 
       return { accessToken, user };
@@ -218,7 +218,7 @@ export const authService = {
       const { accessToken, user } = response.data.data;
 
       // 토큰 저장 및 recoveryToken 삭제
-      localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, `Bearer ${accessToken}`);
+      sessionStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, `Bearer ${accessToken}`);
       this.setStoredUser(user);
       sessionStorage.removeItem(STORAGE_KEYS.RECOVERY_TOKEN);
 
@@ -268,29 +268,29 @@ export const authService = {
   // ==================== 기타 유틸리티 ====================
 
   logout() {
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.USER);
+    sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    sessionStorage.removeItem(STORAGE_KEYS.USER);
     sessionStorage.removeItem(STORAGE_KEYS.SIGNUP_TOKEN);
     sessionStorage.removeItem(STORAGE_KEYS.RECOVERY_TOKEN);
   },
 
   isAuthenticated() {
-    return !!localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    return !!sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
   },
 
   getStoredUser() {
-    const userStr = localStorage.getItem(STORAGE_KEYS.USER);
+    const userStr = sessionStorage.getItem(STORAGE_KEYS.USER);
     if (!userStr) return null;
     try {
       return JSON.parse(userStr);
     } catch {
-      localStorage.removeItem(STORAGE_KEYS.USER);
+      sessionStorage.removeItem(STORAGE_KEYS.USER);
       return null;
     }
   },
 
   setStoredUser(user) {
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    sessionStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
   },
 
   clearSignupSession() {

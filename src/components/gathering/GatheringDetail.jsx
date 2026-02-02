@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Users, QrCode, CreditCard, Receipt, Clock, Pencil, FlaskConical, Calculator, Send, Check, ArrowRight, Settings, Plus, PartyPopper } from 'lucide-react';
 import toast from 'react-hot-toast';
+import DOMPurify from 'dompurify';
 import { useGathering } from '../../hooks/useGathering';
 import { useAuth } from '../../hooks/useAuth';
 import { formatCurrency, getStatusColor } from '../../utils/helpers';
@@ -10,6 +11,12 @@ import Button from '../common/Button';
 import Input from '../common/Input';
 import Modal from '../common/Modal';
 import QRCodeDisplay from './QRCodeDisplay';
+
+// XSS 방어를 위한 텍스트 새니타이저
+const sanitizeText = (text) => {
+  if (!text) return '';
+  return DOMPurify.sanitize(text, { ALLOWED_TAGS: [] });
+};
 
 // 축하 애니메이션 컴포넌트
 const CelebrationOverlay = ({ show, type = 'send', onComplete }) => {
@@ -161,14 +168,47 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
     }
   };
 
-  // 정산 목록 조회
+  // 정산 목록 조회 (모임별 + 내 정산 정보 병합)
   const fetchSettlements = async () => {
     if (!gathering?.id) return;
     setSettlementsLoading(true);
     try {
-      const response = await settlementAPI.getByGathering(gathering.id);
-      const data = response?.data?.data || response?.data || [];
-      setSettlements(Array.isArray(data) ? data : []);
+      // 모임별 정산 목록 조회
+      const gatheringResponse = await settlementAPI.getByGathering(gathering.id);
+      const gatheringSettlements = gatheringResponse?.data?.data || gatheringResponse?.data || [];
+
+      // 내가 보내야 할 정산 목록 조회 (계좌 정보 포함)
+      const toSendResponse = await settlementAPI.getMyToSend();
+      const toSendSettlements = toSendResponse?.data?.data || toSendResponse?.data || [];
+
+      // 내가 받아야 할 정산 목록 조회 (계좌 정보 포함)
+      const toReceiveResponse = await settlementAPI.getMyToReceive();
+      const toReceiveSettlements = toReceiveResponse?.data?.data || toReceiveResponse?.data || [];
+
+      // 모임별 정산에 계좌 정보 병합
+      const mergedSettlements = gatheringSettlements.map(settlement => {
+        // /my/to-send에서 같은 정산 찾기
+        const toSendMatch = toSendSettlements.find(s => s.id === settlement.id);
+        if (toSendMatch) {
+          return {
+            ...settlement,
+            toUserPaymentMethod: toSendMatch.toUserPaymentMethod,
+            tossDeeplink: toSendMatch.tossDeeplink,
+          };
+        }
+        // /my/to-receive에서 같은 정산 찾기
+        const toReceiveMatch = toReceiveSettlements.find(s => s.id === settlement.id);
+        if (toReceiveMatch) {
+          return {
+            ...settlement,
+            toUserPaymentMethod: toReceiveMatch.toUserPaymentMethod,
+            tossDeeplink: toReceiveMatch.tossDeeplink,
+          };
+        }
+        return settlement;
+      });
+
+      setSettlements(Array.isArray(mergedSettlements) ? mergedSettlements : []);
     } catch (error) {
       console.error('Failed to fetch settlements:', error);
       setSettlements([]);
@@ -187,7 +227,7 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
       await fetchSettlements();
     } catch (error) {
       console.error('Failed to calculate settlement:', error);
-      toast.error(error.response?.data?.message || '정산 계산 실패');
+      toast.error(sanitizeText(error.response?.data?.message) || '정산 계산 실패');
     } finally {
       setCalculatingSettlement(false);
     }
@@ -196,15 +236,26 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
   // 정산 완료 (송금자가 호출)
   const handleCompleteSettlement = async (settlementId) => {
     try {
+      // 송금 정보 콘솔 출력
+      const settlement = settlements.find(s => s.id === settlementId);
+      console.log('=== 송금 정보 ===');
+      console.log('정산 ID:', settlementId);
+      console.log('받는 사람:', settlement?.toUser?.name, `(${settlement?.toUser?.email})`);
+      console.log('금액:', settlement?.amount?.toLocaleString(), '원');
+      if (settlement?.toUserPaymentMethod) {
+        console.log('계좌 정보:');
+        console.log('  - 은행:', settlement.toUserPaymentMethod.bankName);
+        console.log('  - 계좌번호:', settlement.toUserPaymentMethod.accountNumber);
+        console.log('  - 예금주:', settlement.toUserPaymentMethod.accountHolder);
+        console.log('  - 플랫폼:', settlement.toUserPaymentMethod.platformDisplayName);
+      } else {
+        console.log('계좌 정보: 수령인이 계좌를 등록하지 않음');
+      }
+      console.log('토스 딥링크:', settlement?.tossDeeplink || '없음');
+      console.log('================');
+
       await settlementAPI.complete(settlementId);
       toast.success('송금 완료 처리되었습니다!');
-      // 송금 성공 시 수령 확인까지 자동 처리
-      try {
-        await settlementAPI.confirm(settlementId);
-        toast.success('수령 확인까지 자동 처리되었습니다!');
-      } catch (confirmError) {
-        console.error('Auto confirm failed:', confirmError);
-      }
       await fetchSettlements();
     } catch (error) {
       console.error('Failed to complete settlement:', error);
@@ -272,12 +323,24 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
   const canRequestPayment = gathering?.status === GATHERING_STATUS.ACTIVE &&
                            participantCount > 0;
 
+  // 금액 검증 상수
+  const MAX_AMOUNT = 99999999; // 최대 1억 미만
+
   const handlePaymentRequest = async (e) => {
     e.preventDefault();
-    
+
     const amount = parseFloat(totalAmount);
     if (isNaN(amount) || amount <= 0) {
       toast.error('올바른 금액을 입력해주세요.');
+      return;
+    }
+    if (amount > MAX_AMOUNT) {
+      toast.error(`최대 금액은 ${MAX_AMOUNT.toLocaleString()}원입니다.`);
+      return;
+    }
+    // 소수점 2자리 초과 검증
+    if (!/^\d+(\.\d{1,2})?$/.test(totalAmount)) {
+      toast.error('소수점 2자리까지만 입력 가능합니다.');
       return;
     }
 
@@ -383,16 +446,28 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
         const handleSendAll = async () => {
           if (pendingToSend.length === 0) return;
 
+          // 송금 목록 콘솔 출력
+          console.log('========== 송금 목록 ==========');
+          pendingToSend.forEach((settlement, index) => {
+            console.log(`\n[${index + 1}] 정산 ID: ${settlement.id}`);
+            console.log(`    받는 사람: ${settlement.toUser?.name} (${settlement.toUser?.email})`);
+            console.log(`    금액: ${settlement.amount?.toLocaleString()}원`);
+            if (settlement.toUserPaymentMethod) {
+              console.log(`    계좌: ${settlement.toUserPaymentMethod.bankName} ${settlement.toUserPaymentMethod.accountNumber}`);
+              console.log(`    예금주: ${settlement.toUserPaymentMethod.accountHolder}`);
+              console.log(`    플랫폼: ${settlement.toUserPaymentMethod.platformDisplayName}`);
+            } else {
+              console.log(`    계좌: 수령인이 계좌 미등록`);
+            }
+            console.log(`    토스 딥링크: ${settlement.tossDeeplink || '없음'}`);
+          });
+          console.log(`\n총 송금액: ${totalToSend.toLocaleString()}원`);
+          console.log('================================');
+
           setCalculatingSettlement(true);
           try {
             for (const settlement of pendingToSend) {
               await settlementAPI.complete(settlement.id);
-              // 자동 confirm 시도
-              try {
-                await settlementAPI.confirm(settlement.id);
-              } catch (e) {
-                // 권한 없으면 무시
-              }
             }
             setCelebrationType('send');
             await fetchSettlements();
@@ -615,7 +690,7 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
                       {index + 1}
                     </div>
                     <span className="font-medium text-gray-900 dark:text-white">
-                      {participant.user?.name || participant.name || '알 수 없음'}
+                      {sanitizeText(participant.user?.name || participant.name) || '알 수 없음'}
                     </span>
                     {(participant.user?.email || participant.email) === gathering.owner?.email && (
                       <span className="text-xs bg-gray-900 dark:bg-gray-600 text-white px-2 py-1 rounded-lg">방장</span>
@@ -648,12 +723,12 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
               {gathering.description && (
                 <div>
                   <span className="text-gray-500 dark:text-gray-400">설명</span>
-                  <p className="text-gray-900 dark:text-white mt-1">{gathering.description}</p>
+                  <p className="text-gray-900 dark:text-white mt-1">{sanitizeText(gathering.description)}</p>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="text-gray-500 dark:text-gray-400">방장</span>
-                <span className="text-gray-900 dark:text-white">{gathering.owner?.name || '알 수 없음'}</span>
+                <span className="text-gray-900 dark:text-white">{sanitizeText(gathering.owner?.name) || '알 수 없음'}</span>
               </div>
               {gathering.totalAmount && (
                 <>
@@ -1408,9 +1483,16 @@ const ExpenseTestModal = ({ isOpen, onClose, gathering, onSuccess }) => {
     ));
   };
 
+  const MAX_AMOUNT = 99999999; // 최대 1억 미만
+
   const handleSubmit = async () => {
-    if (!formData.totalAmount || parseFloat(formData.totalAmount) <= 0) {
+    const amount = parseFloat(formData.totalAmount);
+    if (!formData.totalAmount || isNaN(amount) || amount <= 0) {
       toast.error('총 금액을 입력해주세요.');
+      return;
+    }
+    if (amount > MAX_AMOUNT) {
+      toast.error(`최대 금액은 ${MAX_AMOUNT.toLocaleString()}원입니다.`);
       return;
     }
 

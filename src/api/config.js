@@ -3,12 +3,13 @@ import { STORAGE_KEYS } from '../utils/constants';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
 
-// Create axios instance
+// Create axios instance with security headers
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
+    'X-Requested-With': 'XMLHttpRequest', // CSRF 방어
   },
 });
 
@@ -23,7 +24,8 @@ const addArtificialDelay = async () => {
 // Request interceptor to add auth token and artificial delay
 api.interceptors.request.use(
   async (config) => {
-    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    // sessionStorage 사용 (브라우저 종료 시 자동 삭제)
+    const token = sessionStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     if (token) {
       config.headers.Authorization = token;
     }
@@ -53,8 +55,8 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.USER);
+      sessionStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      sessionStorage.removeItem(STORAGE_KEYS.USER);
       window.location.href = '/auth';
       return Promise.reject(new Error('인증이 만료되었습니다. 다시 로그인해주세요.'));
     }

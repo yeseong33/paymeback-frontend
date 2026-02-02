@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, LogOut, ChevronRight, Sun, Moon } from 'lucide-react';
+import { User, Mail, LogOut, ChevronRight, Sun, Moon, CreditCard } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
@@ -94,6 +94,24 @@ const ProfilePage = () => {
               <span className="text-xs text-gray-400">변경 불가</span>
             </div>
           </div>
+        </div>
+
+        {/* 결제 수단 */}
+        <div className="card mb-4">
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">결제</h3>
+          <button
+            onClick={() => navigate('/payment-methods')}
+            className="w-full flex items-center justify-between p-3 -mx-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <CreditCard size={20} className="text-gray-400" />
+              <div className="text-left">
+                <span className="text-gray-900 dark:text-white">계좌 설정</span>
+                <p className="text-sm text-gray-500 dark:text-gray-400">정산받을 계좌를 등록하세요</p>
+              </div>
+            </div>
+            <ChevronRight size={20} className="text-gray-400" />
+          </button>
         </div>
 
         {/* 설정 */}
