@@ -236,24 +236,6 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
   // 정산 완료 (송금자가 호출)
   const handleCompleteSettlement = async (settlementId) => {
     try {
-      // 송금 정보 콘솔 출력
-      const settlement = settlements.find(s => s.id === settlementId);
-      console.log('=== 송금 정보 ===');
-      console.log('정산 ID:', settlementId);
-      console.log('받는 사람:', settlement?.toUser?.name, `(${settlement?.toUser?.email})`);
-      console.log('금액:', settlement?.amount?.toLocaleString(), '원');
-      if (settlement?.toUserPaymentMethod) {
-        console.log('계좌 정보:');
-        console.log('  - 은행:', settlement.toUserPaymentMethod.bankName);
-        console.log('  - 계좌번호:', settlement.toUserPaymentMethod.accountNumber);
-        console.log('  - 예금주:', settlement.toUserPaymentMethod.accountHolder);
-        console.log('  - 플랫폼:', settlement.toUserPaymentMethod.platformDisplayName);
-      } else {
-        console.log('계좌 정보: 수령인이 계좌를 등록하지 않음');
-      }
-      console.log('토스 딥링크:', settlement?.tossDeeplink || '없음');
-      console.log('================');
-
       await settlementAPI.complete(settlementId);
       toast.success('송금 완료 처리되었습니다!');
       await fetchSettlements();
@@ -445,24 +427,6 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
         // 모든 PENDING 정산 한번에 완료
         const handleSendAll = async () => {
           if (pendingToSend.length === 0) return;
-
-          // 송금 목록 콘솔 출력
-          console.log('========== 송금 목록 ==========');
-          pendingToSend.forEach((settlement, index) => {
-            console.log(`\n[${index + 1}] 정산 ID: ${settlement.id}`);
-            console.log(`    받는 사람: ${settlement.toUser?.name} (${settlement.toUser?.email})`);
-            console.log(`    금액: ${settlement.amount?.toLocaleString()}원`);
-            if (settlement.toUserPaymentMethod) {
-              console.log(`    계좌: ${settlement.toUserPaymentMethod.bankName} ${settlement.toUserPaymentMethod.accountNumber}`);
-              console.log(`    예금주: ${settlement.toUserPaymentMethod.accountHolder}`);
-              console.log(`    플랫폼: ${settlement.toUserPaymentMethod.platformDisplayName}`);
-            } else {
-              console.log(`    계좌: 수령인이 계좌 미등록`);
-            }
-            console.log(`    토스 딥링크: ${settlement.tossDeeplink || '없음'}`);
-          });
-          console.log(`\n총 송금액: ${totalToSend.toLocaleString()}원`);
-          console.log('================================');
 
           setCalculatingSettlement(true);
           try {
