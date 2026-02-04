@@ -11,6 +11,7 @@ import Button from '../common/Button';
 import Input from '../common/Input';
 import Modal from '../common/Modal';
 import QRCodeDisplay from './QRCodeDisplay';
+import SequentialTransfer from '../payment/SequentialTransfer';
 
 // XSS 방어를 위한 텍스트 새니타이저
 const sanitizeText = (text) => {
@@ -151,6 +152,8 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
   const [calculatingSettlement, setCalculatingSettlement] = useState(false);
   const [activeTab, setActiveTab] = useState('expense'); // 'expense' | 'participants' | 'settings'
   const [celebrationType, setCelebrationType] = useState(null); // null | 'send' | 'receive'
+  const [showSequentialTransfer, setShowSequentialTransfer] = useState(false);
+  const [myPendingSettlements, setMyPendingSettlements] = useState([]);
 
   // 지출 목록 조회
   const fetchExpenses = async () => {
@@ -369,6 +372,18 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
       {/* 축하 애니메이션 */}
       <CelebrationOverlay show={!!celebrationType} type={celebrationType} onComplete={() => setCelebrationType(null)} />
 
+      {/* 순차 송금 모달 */}
+      {showSequentialTransfer && (
+        <SequentialTransfer
+          settlements={myPendingSettlements}
+          onClose={() => setShowSequentialTransfer(false)}
+          onComplete={() => {
+            fetchSettlements();
+            setCelebrationType('send');
+          }}
+        />
+      )}
+
       {/* 상단 헤더 */}
       <div className="px-5 py-4 bg-white dark:bg-gray-800/50 rounded-2xl shadow-[0_2px_8px_0_rgba(0,0,0,0.04)] dark:shadow-[0_2px_8px_0_rgba(0,0,0,0.2)]">
         <div className="flex items-center justify-between">
@@ -424,23 +439,11 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
         const confirmedToReceive = toReceive.filter(s => s.status === 'CONFIRMED');
         const totalReceived = confirmedToReceive.reduce((sum, s) => sum + (s.amount || 0), 0);
 
-        // 모든 PENDING 정산 한번에 완료
-        const handleSendAll = async () => {
+        // 순차 송금 화면 열기
+        const handleOpenTransfer = () => {
           if (pendingToSend.length === 0) return;
-
-          setCalculatingSettlement(true);
-          try {
-            for (const settlement of pendingToSend) {
-              await settlementAPI.complete(settlement.id);
-            }
-            setCelebrationType('send');
-            await fetchSettlements();
-          } catch (error) {
-            console.error('Failed to send all:', error);
-            toast.error('송금 처리 중 오류가 발생했습니다.');
-          } finally {
-            setCalculatingSettlement(false);
-          }
+          setMyPendingSettlements(pendingToSend);
+          setShowSequentialTransfer(true);
         };
 
         // 모든 COMPLETED 정산 수령 확인
@@ -482,18 +485,11 @@ const GatheringDetail = ({ gathering, onUpdate }) => {
             {toSend.length > 0 && (
               totalToSend > 0 ? (
                 <button
-                  onClick={handleSendAll}
-                  disabled={calculatingSettlement}
-                  className="w-full flex items-center justify-center gap-3 py-5 bg-blue-500 text-white font-bold text-xl rounded-2xl transition-all duration-200 disabled:opacity-50 shadow-[0_4px_14px_0_rgba(59,130,246,0.4)] hover:shadow-[0_6px_20px_0_rgba(59,130,246,0.5)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[0_2px_10px_0_rgba(59,130,246,0.4)]"
+                  onClick={handleOpenTransfer}
+                  className="w-full flex items-center justify-center gap-3 py-5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-xl rounded-2xl transition-all duration-200 shadow-[0_4px_14px_0_rgba(59,130,246,0.4)] hover:shadow-[0_6px_20px_0_rgba(59,130,246,0.5)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[0_2px_10px_0_rgba(59,130,246,0.4)]"
                 >
-                  {calculatingSettlement ? (
-                    <span className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Send size={22} />
-                      {totalToSend.toLocaleString()}원 송금
-                    </>
-                  )}
+                  <Send size={22} />
+                  {totalToSend.toLocaleString()}원 송금하기
                 </button>
               ) : (
                 <div className="w-full flex items-center justify-center gap-3 py-5 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 text-blue-600 dark:text-blue-400 font-bold text-xl rounded-2xl shadow-[0_4px_14px_0_rgba(59,130,246,0.15)]">

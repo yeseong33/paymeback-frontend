@@ -85,7 +85,7 @@ export const useAuthStore = create((set, get) => ({
   },
 
   /**
-   * 회원가입 OTP 검증 → Passkey 등록 화면으로
+   * 회원가입 OTP 검증 → 계좌 등록 화면으로 (선택)
    */
   signupVerify: async ({ otpCode }) => {
     const { email } = get().flowData;
@@ -94,6 +94,25 @@ export const useAuthStore = create((set, get) => ({
     try {
       await authService.signupVerify({ email, otpCode });
 
+      set({
+        loading: false,
+        authFlow: AUTH_FLOW.SIGNUP_ACCOUNT,
+      });
+
+      return { success: true };
+    } catch (error) {
+      set({ loading: false, error: error.message });
+      throw error;
+    }
+  },
+
+  /**
+   * 계좌 등록 화면에서 Passkey 등록으로 이동
+   */
+  goToSignupPasskey: async () => {
+    set({ loading: true, error: null });
+
+    try {
       // Passkey 등록 시작 (challenge 발급)
       const passkeyOptions = await authService.signupPasskeyStart();
 

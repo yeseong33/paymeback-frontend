@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, Clock, XCircle, Users, Calculator, Send, Check, ArrowRight } from 'lucide-react';
+import { CheckCircle, Clock, XCircle, Users, Calculator, Send, Check, ArrowRight, Wallet } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { usePayment } from '../../hooks/usePayment';
 import { useAuth } from '../../hooks/useAuth';
@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from '../../utils/helpers';
 import { PAYMENT_STATUS, PAYMENT_STATUS_LABELS } from '../../utils/constants';
 import { settlementAPI } from '../../api';
 import Loading from '../common/Loading';
+import SequentialTransfer from './SequentialTransfer';
 
 const PaymentHistory = ({ gatheringId }) => {
   const { getGatheringPayments, loading } = usePayment();
@@ -14,6 +15,20 @@ const PaymentHistory = ({ gatheringId }) => {
   const [payments, setPayments] = useState([]);
   const [settlements, setSettlements] = useState([]);
   const [settlementsLoading, setSettlementsLoading] = useState(false);
+  const [showSequentialTransfer, setShowSequentialTransfer] = useState(false);
+  const [selectedSettlement, setSelectedSettlement] = useState(null);
+
+  // 개별 송금하기 클릭 핸들러
+  const handleOpenTransfer = (settlement) => {
+    setSelectedSettlement(settlement);
+    setShowSequentialTransfer(true);
+  };
+
+  // 전체 송금하기 클릭 핸들러
+  const handleOpenAllTransfer = () => {
+    setSelectedSettlement(null);
+    setShowSequentialTransfer(true);
+  };
 
   useEffect(() => {
     loadPayments();
@@ -234,18 +249,29 @@ const PaymentHistory = ({ gatheringId }) => {
             {/* 내가 보내야 할 정산 */}
             {myToSend.length > 0 && (
               <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Send size={16} className="text-red-500 dark:text-red-400" />
-                  <span className="text-sm font-medium text-red-600 dark:text-red-400">
-                    보내야 할 정산
-                  </span>
-                  <span className="text-xs text-gray-400 dark:text-gray-500">
-                    ({myToSend.length}건)
-                  </span>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Send size={16} className="text-red-500 dark:text-red-400" />
+                    <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                      보내야 할 정산
+                    </span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                      ({myToSend.length}건)
+                    </span>
+                  </div>
+                  {myToSend.filter(s => s.status === 'PENDING').length > 1 && (
+                    <button
+                      onClick={handleOpenAllTransfer}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white text-sm font-medium rounded-full hover:from-blue-600 hover:to-indigo-600 transition-all shadow-md hover:shadow-lg"
+                    >
+                      <Wallet size={14} />
+                      전체 송금
+                    </button>
+                  )}
                 </div>
                 <div className="space-y-2">
                   {myToSend.map((s) => (
-                    <SettlementRow key={s.id} settlement={s} currentUser={user} onComplete={handleCompleteSettlement} onConfirm={handleConfirmSettlement} />
+                    <SettlementRow key={s.id} settlement={s} currentUser={user} onTransfer={handleOpenTransfer} onConfirm={handleConfirmSettlement} />
                   ))}
                 </div>
               </div>
@@ -265,7 +291,7 @@ const PaymentHistory = ({ gatheringId }) => {
                 </div>
                 <div className="space-y-2">
                   {myToReceive.map((s) => (
-                    <SettlementRow key={s.id} settlement={s} currentUser={user} onComplete={handleCompleteSettlement} onConfirm={handleConfirmSettlement} />
+                    <SettlementRow key={s.id} settlement={s} currentUser={user} onConfirm={handleConfirmSettlement} />
                   ))}
                 </div>
               </div>
@@ -285,7 +311,7 @@ const PaymentHistory = ({ gatheringId }) => {
                 </div>
                 <div className="space-y-2">
                   {others.map((s) => (
-                    <SettlementRow key={s.id} settlement={s} currentUser={user} onComplete={handleCompleteSettlement} onConfirm={handleConfirmSettlement} />
+                    <SettlementRow key={s.id} settlement={s} currentUser={user} />
                   ))}
                 </div>
               </div>
@@ -326,23 +352,32 @@ const PaymentHistory = ({ gatheringId }) => {
           </div>
         </div>
       )}
+
+      {/* 순차 송금 모달 */}
+      {showSequentialTransfer && (
+        <SequentialTransfer
+          settlements={selectedSettlement ? [selectedSettlement] : myToSend}
+          onClose={() => {
+            setShowSequentialTransfer(false);
+            setSelectedSettlement(null);
+          }}
+          onComplete={loadSettlements}
+        />
+      )}
     </div>
   );
 };
 
 // 정산 행 컴포넌트
-const SettlementRow = ({ settlement, currentUser, onComplete, onConfirm }) => {
+const SettlementRow = ({ settlement, currentUser, onTransfer, onConfirm }) => {
   const [loading, setLoading] = useState(false);
 
   const isSender = settlement.fromUser?.id === currentUser?.id || settlement.fromUser?.email === currentUser?.email;
   const isReceiver = settlement.toUser?.id === currentUser?.id || settlement.toUser?.email === currentUser?.email;
 
-  const handleComplete = async () => {
-    setLoading(true);
-    try {
-      await onComplete(settlement.id);
-    } finally {
-      setLoading(false);
+  const handleTransfer = () => {
+    if (onTransfer) {
+      onTransfer(settlement);
     }
   };
 
@@ -378,22 +413,16 @@ const SettlementRow = ({ settlement, currentUser, onComplete, onConfirm }) => {
 
         {isSender ? (
           <button
-            onClick={settlement.status === 'PENDING' ? handleComplete : undefined}
-            disabled={loading || settlement.status !== 'PENDING'}
+            onClick={settlement.status === 'PENDING' ? handleTransfer : undefined}
+            disabled={settlement.status !== 'PENDING'}
             className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
               settlement.status === 'PENDING'
-                ? 'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50'
+                ? 'bg-blue-500 text-white hover:bg-blue-600'
                 : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-default'
             }`}
           >
-            {loading ? (
-              <span className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                {settlement.status === 'PENDING' ? <Send size={14} /> : <Check size={14} />}
-                {settlement.status === 'PENDING' ? '송금하기' : settlement.status === 'COMPLETED' ? '송금완료' : '정산완료'}
-              </>
-            )}
+            {settlement.status === 'PENDING' ? <Send size={14} /> : <Check size={14} />}
+            {settlement.status === 'PENDING' ? '송금하기' : settlement.status === 'COMPLETED' ? '송금완료' : '정산완료'}
           </button>
         ) : isReceiver ? (
           <button

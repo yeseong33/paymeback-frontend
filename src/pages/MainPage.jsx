@@ -3,18 +3,23 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, QrCode, Users } from 'lucide-react';
 import { useGathering } from '../hooks/useGathering';
 import { useAuthStore } from '../store/authStore';
+import { useAccountCheck } from '../hooks/useAccountCheck';
 import Button from '../components/common/Button';
 import Header from '../components/common/Header';
 import GatheringList from '../components/gathering/GatheringList';
 import CreateGathering from '../components/gathering/CreateGathering';
 import QRCodeScanner from '../components/gathering/QRCodeScanner';
+import AccountRequiredModal from '../components/common/AccountRequiredModal';
 
 const MainPage = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
   const { gatherings, getMyGatherings, loading, initialize } = useGathering();
+  const { hasAccount, refetch: refetchAccount } = useAccountCheck();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showScannerModal, setShowScannerModal] = useState(false);
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // 'create' | 'join'
 
   // 컴포넌트가 언마운트될 때 gathering store 초기화
   useEffect(() => {
@@ -46,6 +51,37 @@ const MainPage = () => {
     navigate(`/gathering/${gathering.id}`);
   };
 
+  // 계좌 체크 후 모임 생성
+  const handleCreateClick = () => {
+    if (hasAccount) {
+      setShowCreateModal(true);
+    } else {
+      setPendingAction('create');
+      setShowAccountModal(true);
+    }
+  };
+
+  // 계좌 체크 후 모임 참여
+  const handleJoinClick = () => {
+    if (hasAccount) {
+      setShowScannerModal(true);
+    } else {
+      setPendingAction('join');
+      setShowAccountModal(true);
+    }
+  };
+
+  // 계좌 등록 완료 후 처리
+  const handleAccountSuccess = async () => {
+    await refetchAccount();
+    if (pendingAction === 'create') {
+      setShowCreateModal(true);
+    } else if (pendingAction === 'join') {
+      setShowScannerModal(true);
+    }
+    setPendingAction(null);
+  };
+
   return (
     <div className="page">
       <Header showProfile={true} />
@@ -55,15 +91,15 @@ const MainPage = () => {
         <div className="button-grid">
           <button
             className="action-button primary"
-            onClick={() => setShowCreateModal(true)}
+            onClick={handleCreateClick}
           >
             <Plus size={24} />
             <span>모임 만들기</span>
           </button>
-          
+
           <button
             className="action-button secondary"
-            onClick={() => setShowScannerModal(true)}
+            onClick={handleJoinClick}
           >
             <QrCode size={24} />
             <span>모임 참여</span>
@@ -117,6 +153,16 @@ const MainPage = () => {
         isOpen={showScannerModal}
         onClose={() => setShowScannerModal(false)}
         onSuccess={handleJoinSuccess}
+      />
+
+      <AccountRequiredModal
+        isOpen={showAccountModal}
+        onClose={() => {
+          setShowAccountModal(false);
+          setPendingAction(null);
+        }}
+        onSuccess={handleAccountSuccess}
+        title={pendingAction === 'create' ? '모임을 만들려면 계좌가 필요해요' : '모임에 참여하려면 계좌가 필요해요'}
       />
     </div>
   );

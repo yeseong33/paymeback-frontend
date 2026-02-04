@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import LoginForm from '../components/auth/LoginForm';
 import SignupForm from '../components/auth/SignupForm';
 import OTPVerification from '../components/auth/OTPVerification';
+import SignupAccountStep from '../components/auth/SignupAccountStep';
 import PasskeyRegistration from '../components/auth/PasskeyRegistration';
 import RecoveryForm from '../components/auth/RecoveryForm';
 import { useAuth } from '../hooks/useAuth';
@@ -62,6 +63,9 @@ const AuthPage = () => {
 
       case AUTH_FLOW.SIGNUP_OTP:
         return <OTPVerification onBack={handleBack} />;
+
+      case AUTH_FLOW.SIGNUP_ACCOUNT:
+        return <SignupAccountStep onBack={handleBack} />;
 
       case AUTH_FLOW.SIGNUP_PASSKEY:
         return <PasskeyRegistration onBack={handleBack} />;

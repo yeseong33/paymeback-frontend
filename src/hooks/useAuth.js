@@ -21,6 +21,7 @@ export const useAuth = () => {
     signupStart,
     signupVerify,
     signupPasskeyFinish,
+    goToSignupPasskey,
 
     // 로그인 플로우
     loginStart,
@@ -69,6 +70,7 @@ export const useAuth = () => {
     signupStart,
     signupVerify,
     signupPasskeyFinish,
+    goToSignupPasskey,
 
     // 로그인 플로우
     loginStart,
