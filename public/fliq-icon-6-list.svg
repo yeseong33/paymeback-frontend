@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="fliqGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1D4ED8"/>
+      <stop offset="55%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#6D28D9"/>
+    </linearGradient>
+  </defs>
+  <rect x="64" y="64" width="896" height="896" rx="220" ry="220" fill="url(#fliqGrad)"/>
+  <!-- 리스트 (기록 목록) -->
+  <circle cx="320" cy="340" r="45" fill="white"/>
+  <rect x="420" y="305" width="320" height="70" rx="35" fill="white"/>
+  <circle cx="320" cy="512" r="45" fill="white"/>
+  <rect x="420" y="477" width="320" height="70" rx="35" fill="white"/>
+  <circle cx="320" cy="684" r="45" fill="white"/>
+  <rect x="420" y="649" width="320" height="70" rx="35" fill="white"/>
+</svg>
