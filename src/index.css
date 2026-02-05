@@ -3,52 +3,114 @@
 @tailwind utilities;
 
 @layer components {
+  /* 페이지 레이아웃 */
   .page {
-    @apply min-h-screen bg-white dark:bg-gray-900;
+    @apply min-h-screen bg-gray-50 dark:bg-gray-900;
   }
 
   .page-content {
-    @apply max-w-md mx-auto space-y-6 pb-20 px-4 pt-4;
+    @apply max-w-md mx-auto space-y-6 pb-20 px-6 py-8;
   }
 
+  /* 버튼 그리드 */
   .button-grid {
     @apply grid grid-cols-2 gap-4 mb-6;
   }
 
+  /* 액션 버튼 */
   .action-button {
-    @apply flex flex-col items-center justify-center p-4 rounded-lg transition-all duration-200;
+    @apply flex flex-col items-center justify-center p-5 rounded-2xl transition-all duration-300;
   }
 
   .action-button.primary {
-    @apply bg-blue-500 text-white hover:bg-blue-600;
+    @apply bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/25;
+  }
+
+  .action-button.primary:hover {
+    @apply from-blue-600 to-indigo-600;
   }
 
   .action-button.secondary {
-    @apply bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700;
+    @apply bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 shadow-lg;
   }
 
+  .action-button.secondary:hover {
+    @apply bg-gray-50 dark:bg-gray-700;
+  }
+
+  /* 카드 컴포넌트 - 디자인 스펙 적용 */
   .card {
-    @apply p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800;
+    @apply p-6 rounded-3xl bg-white dark:bg-gray-800 shadow-xl;
   }
 
+  .card-bordered {
+    @apply p-6 rounded-3xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700;
+  }
+
+  /* 상태 배지 */
   .status-badge {
-    @apply px-2 py-1 text-xs rounded-full font-medium;
+    @apply px-3 py-1.5 text-xs rounded-full font-medium;
   }
 
   .status-badge.active {
-    @apply bg-green-100 text-green-800;
+    @apply bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400;
   }
 
   .status-badge.pending {
-    @apply bg-yellow-100 text-yellow-800;
+    @apply bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400;
   }
 
   .status-badge.completed {
-    @apply bg-blue-100 text-blue-800;
+    @apply bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400;
   }
 
   .status-badge.closed {
-    @apply bg-gray-100 text-gray-800;
+    @apply bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300;
+  }
+
+  /* 금액 박스 */
+  .amount-box {
+    @apply bg-gray-50 dark:bg-gray-700/50 rounded-2xl p-5;
+  }
+
+  /* 그라데이션 버튼 */
+  .btn-gradient-blue {
+    @apply bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/25 transition-all;
+  }
+
+  .btn-gradient-green {
+    @apply bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold rounded-2xl shadow-lg shadow-green-500/25 transition-all;
+  }
+
+  /* 프로필 아바타 */
+  .avatar {
+    @apply inline-flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700;
+  }
+
+  .avatar-sm {
+    @apply w-10 h-10 text-sm;
+  }
+
+  .avatar-md {
+    @apply w-12 h-12 text-lg;
+  }
+
+  .avatar-lg {
+    @apply w-16 h-16 text-xl;
+  }
+
+  /* 진행 바 */
+  .progress-bar {
+    @apply w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full bg-blue-500 rounded-full transition-all duration-500 ease-out;
+  }
+
+  /* 글래스모피즘 효과 */
+  .glass {
+    @apply bg-white/20 backdrop-blur-sm;
   }
 
   .line-clamp-2 {
@@ -134,4 +196,15 @@
 /* Hide reCAPTCHA v3 badge */
 .grecaptcha-badge {
   visibility: hidden !important;
+}
+
+/* 접근성: 모션 감소 선호 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-card-fly-up,
+  .animate-scale-in,
+  .animate-bounce-in,
+  .confetti {
+    animation: none !important;
+    transition: none !important;
+  }
 }

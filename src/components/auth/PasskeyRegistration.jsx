@@ -3,7 +3,6 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { AUTH_FLOW } from '../../utils/constants';
-import Button from '../common/Button';
 
 const PasskeyRegistration = ({ onBack }) => {
   const navigate = useNavigate();
@@ -63,13 +62,16 @@ const PasskeyRegistration = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-white dark:bg-gray-900 transition-colors duration-200">
-      <div className="card w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
-        <div className="text-center mb-6">
+    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+        <h1 className="text-center text-4xl font-bold bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+          Fliq
+        </h1>
+        <div className="text-center mt-6">
           {/* Passkey 아이콘 */}
-          <div className="w-20 h-20 mx-auto mb-4 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
             <svg
-              className="w-10 h-10 text-primary-500 dark:text-primary-400"
+              className="w-10 h-10 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -83,10 +85,10 @@ const PasskeyRegistration = ({ onBack }) => {
             </svg>
           </div>
 
-          <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
             {isRecovery ? '새 Passkey 등록' : 'Passkey 등록'}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             {loading
               ? '기기의 인증 방법을 사용하여 Passkey를 등록해주세요.'
               : error
@@ -94,13 +96,16 @@ const PasskeyRegistration = ({ onBack }) => {
                 : '버튼을 눌러 Passkey를 등록하세요.'}
           </p>
         </div>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
 
         {/* 로딩 상태 */}
         {loading && (
           <div className="flex flex-col items-center py-8">
-            <div className="animate-pulse">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/25 animate-pulse">
               <svg
-                className="w-16 h-16 text-primary-500 dark:text-primary-400"
+                className="w-8 h-8 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -113,7 +118,7 @@ const PasskeyRegistration = ({ onBack }) => {
                 />
               </svg>
             </div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400 text-sm">
+            <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm">
               기기에서 인증을 완료해주세요...
             </p>
           </div>
@@ -122,22 +127,24 @@ const PasskeyRegistration = ({ onBack }) => {
         {/* 에러 상태 */}
         {error && !loading && (
           <div className="mb-6">
-            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-              <div className="flex items-start">
-                <svg
-                  className="w-5 h-5 text-red-500 dark:text-red-400 mt-0.5 mr-3 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            <div className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-2xl p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-rose-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg shadow-red-500/25">
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <p className="text-sm text-red-700 dark:text-red-300 pt-1">{error}</p>
               </div>
             </div>
           </div>
@@ -147,28 +154,41 @@ const PasskeyRegistration = ({ onBack }) => {
         {!loading && (
           <div className="space-y-3">
             {error ? (
-              <Button type="button" fullWidth onClick={handleRetry}>
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold text-lg rounded-2xl shadow-lg shadow-blue-500/25 transition-all duration-300"
+              >
                 다시 시도
-              </Button>
+              </button>
             ) : (
-              <Button type="button" fullWidth onClick={handleRegisterPasskey}>
+              <button
+                type="button"
+                onClick={handleRegisterPasskey}
+                className="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold text-lg rounded-2xl shadow-lg shadow-blue-500/25 transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
                 Passkey 등록하기
-              </Button>
+              </button>
             )}
 
-            <Button type="button" variant="secondary" fullWidth onClick={handleCancel}>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="w-full py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-2xl transition-all duration-300"
+            >
               취소
-            </Button>
+            </button>
           </div>
         )}
 
         {/* 안내 문구 */}
-        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-            Passkey는 Touch ID, Face ID, Windows Hello 등<br />
-            기기의 생체 인증을 사용합니다.
-          </p>
-        </div>
+        <p className="mt-8 text-xs text-gray-400 dark:text-gray-500 text-center">
+          Passkey는 Touch ID, Face ID, Windows Hello 등<br />
+          기기의 생체 인증을 사용합니다.
+        </p>
       </div>
     </div>
   );

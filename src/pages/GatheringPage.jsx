@@ -131,10 +131,10 @@ const GatheringPage = () => {
 
         {/* 결제하기 버튼 (참여자용) */}
         {!isOwner && canPay && (
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200">
-            <div className="container">
-              <Button 
-                fullWidth 
+          <div className="fixed bottom-0 left-0 right-0 p-6 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-t border-gray-200/50 dark:border-gray-700/50">
+            <div className="max-w-md mx-auto">
+              <Button
+                fullWidth
                 size="lg"
                 onClick={handlePaymentClick}
                 className="flex items-center justify-center gap-2"

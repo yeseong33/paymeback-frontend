@@ -130,14 +130,29 @@ const MainPage = () => {
         </div>
 
         {/* 도움말 */}
-        <div className="card bg-gray-50 dark:bg-gray-800">
-          <h3 className="font-medium mb-3 text-gray-900 dark:text-white">사용법</h3>
-          <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-            <p>1. <strong className="text-gray-900 dark:text-white">모임 만들기</strong>로 새로운 더치페이 모임을 생성하세요</p>
-            <p>2. 생성된 <strong className="text-gray-900 dark:text-white">QR 코드</strong>를 친구들과 공유하세요</p>
-            <p>3. 친구들이 QR 코드로 모임에 참여할 수 있습니다</p>
-            <p>4. 결제 금액을 입력하면 자동으로 <strong className="text-gray-900 dark:text-white">1/N</strong> 분할됩니다</p>
-            <p>5. 각자 결제를 진행하면 완료!</p>
+        <div className="card">
+          <h3 className="font-bold mb-4 text-gray-900 dark:text-white">사용법</h3>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-bold">1</span>
+              <p className="text-gray-600 dark:text-gray-300"><strong className="text-gray-900 dark:text-white">모임 만들기</strong>로 새로운 더치페이 모임을 생성하세요</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-bold">2</span>
+              <p className="text-gray-600 dark:text-gray-300">생성된 <strong className="text-gray-900 dark:text-white">QR 코드</strong>를 친구들과 공유하세요</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-bold">3</span>
+              <p className="text-gray-600 dark:text-gray-300">친구들이 QR 코드로 모임에 참여할 수 있습니다</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-bold">4</span>
+              <p className="text-gray-600 dark:text-gray-300">결제 금액을 입력하면 자동으로 <strong className="text-gray-900 dark:text-white">1/N</strong> 분할됩니다</p>
+            </div>
+            <div className="flex items-start gap-3">
+              <span className="flex-shrink-0 w-6 h-6 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white text-xs font-bold">5</span>
+              <p className="text-gray-600 dark:text-gray-300">각자 결제를 진행하면 완료!</p>
+            </div>
           </div>
         </div>
       </div>

@@ -3,8 +3,6 @@ import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
 import { validateOTP } from '../../utils/validation';
 import { AUTH_FLOW } from '../../utils/constants';
-import Button from '../common/Button';
-import Input from '../common/Input';
 
 const OTPVerification = ({ onBack }) => {
   const { authFlow, flowData, signupVerify, recoveryVerify, resendOTP, goToLogin } = useAuth();
@@ -118,20 +116,35 @@ const OTPVerification = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-12 bg-white dark:bg-gray-900 transition-colors duration-200">
-      <div className="card w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-white">이메일 인증</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-1">{email}로 발송된</p>
-          <p className="text-gray-600 dark:text-gray-400">6자리 인증 코드를 입력해주세요</p>
+    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+        <h1 className="text-center text-4xl font-bold bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+          Fliq
+        </h1>
+        <div className="text-center mt-6">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/25">
+            <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">이메일 인증</h2>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">{email}로 발송된</p>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">6자리 인증 코드를 입력해주세요</p>
         </div>
+      </div>
 
-        <form ref={formRef} onSubmit={handleSubmit} noValidate>
-          <div
-            className={`transition-all duration-300 ease-in-out ${focusedField ? 'scale-[1.02]' : ''}`}
-          >
-            <Input
-              label="인증 코드"
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-sm">
+
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-5" noValidate>
+          <div>
+            <label
+              htmlFor="otp"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              인증 코드
+            </label>
+            <input
+              id="otp"
               type="text"
               inputMode="numeric"
               value={otpCode}
@@ -139,49 +152,68 @@ const OTPVerification = ({ onBack }) => {
               onFocus={() => setFocusedField(true)}
               onBlur={() => setFocusedField(false)}
               placeholder="123456"
-              error={error}
-              shake={shake}
               maxLength={6}
-              className={`text-center text-2xl tracking-widest transition-all duration-300 ${
-                focusedField ? 'ring-2 ring-primary-500/20 shadow-lg' : ''
-              }`}
+              disabled={loading}
+              className={`block w-full px-4 py-3 border-2 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 text-center text-2xl tracking-widest font-mono transition-all duration-300 ${
+                error
+                  ? 'border-red-500 dark:border-red-400 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                  : focusedField
+                    ? 'border-blue-500 dark:border-blue-400 bg-white dark:bg-gray-700 ring-4 ring-blue-500/10 scale-[1.02] shadow-lg'
+                    : 'border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-gray-700'
+              } ${shake ? 'animate-shake' : ''} ${loading ? 'opacity-50' : ''}`}
             />
-          </div>
-
-          <div className="text-center mb-4">
-            {countdown > 0 ? (
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
-                남은 시간: {formatTime(countdown)}
+            {error && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {error}
               </p>
-            ) : (
-              <p className="text-red-500 dark:text-red-400 text-sm">인증 시간이 만료되었습니다.</p>
             )}
           </div>
 
-          <Button
+          <div className="text-center">
+            {countdown > 0 ? (
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
+                남은 시간: <span className="font-bold text-blue-500">{formatTime(countdown)}</span>
+              </p>
+            ) : (
+              <p className="text-red-500 dark:text-red-400 text-sm font-medium">인증 시간이 만료되었습니다.</p>
+            )}
+          </div>
+
+          <button
             type="submit"
-            fullWidth
-            loading={loading}
-            disabled={otpCode.length !== 6 || countdown === 0}
-            className="mb-4"
+            disabled={loading || otpCode.length !== 6 || countdown === 0}
+            className="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold text-lg rounded-2xl shadow-lg shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            인증 확인
-          </Button>
+            {loading ? (
+              <>
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                확인 중...
+              </>
+            ) : (
+              '인증 확인'
+            )}
+          </button>
 
-          <div className="flex gap-2">
-            <Button type="button" variant="secondary" fullWidth onClick={handleBack}>
-              이전
-            </Button>
-
-            <Button
+          <div className="flex gap-3">
+            <button
               type="button"
-              variant="secondary"
-              fullWidth
-              disabled={resendCooldown > 0}
+              onClick={handleBack}
+              className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-2xl transition-all duration-300"
+            >
+              이전
+            </button>
+
+            <button
+              type="button"
               onClick={handleResend}
+              disabled={resendCooldown > 0}
+              className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-2xl transition-all duration-300 disabled:opacity-50"
             >
               {resendCooldown > 0 ? `재발송 (${resendCooldown}초)` : '재발송'}
-            </Button>
+            </button>
           </div>
         </form>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { Key, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { validateEmail } from '../../utils/validation';
 
@@ -71,28 +72,18 @@ const LoginForm = ({ onSwitchToSignup, onSwitchToRecovery }) => {
 
   if (!webAuthnSupported) {
     return (
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-white dark:bg-gray-900 transition-colors duration-200">
+      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h1 className="text-center text-3xl font-bold text-primary-500 dark:text-primary-400">
-            Pay Me Back
+          <h1 className="text-center text-4xl font-bold bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+            Fliq
           </h1>
-          <div className="mt-10 text-center">
-            <div className="text-red-500 dark:text-red-400">
-              <svg
-                className="w-16 h-16 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <h2 className="text-lg font-semibold mb-2">Passkey 미지원 브라우저</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+          <div className="mt-10">
+            <div className="card text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-red-500/25">
+                <AlertTriangle size={36} className="text-white" />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Passkey 미지원 브라우저</h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
                 이 브라우저는 Passkey(WebAuthn)를 지원하지 않습니다.
                 <br />
                 최신 버전의 Chrome, Safari, Firefox, Edge를 사용해주세요.
@@ -105,12 +96,12 @@ const LoginForm = ({ onSwitchToSignup, onSwitchToRecovery }) => {
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-white dark:bg-gray-900 transition-colors duration-200">
+    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h1 className="text-center text-3xl font-bold text-primary-500 dark:text-primary-400">
-          Pay Me Back
+        <h1 className="text-center text-4xl font-bold bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+          Fliq
         </h1>
-        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-4 text-center text-gray-500 dark:text-gray-400">
           이메일을 입력하고 Passkey로 로그인하세요
         </p>
       </div>
@@ -120,79 +111,53 @@ const LoginForm = ({ onSwitchToSignup, onSwitchToRecovery }) => {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-900 dark:text-gray-200"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               이메일
             </label>
-            <div className="mt-2">
-              <input
-                ref={emailRef}
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email webauthn"
-                value={email}
-                onChange={handleChange}
-                onFocus={() => setFocusedField(true)}
-                onBlur={() => setFocusedField(false)}
-                disabled={loading}
-                placeholder="name@example.com"
-                className={`block w-full rounded-md border bg-white dark:bg-gray-800 px-3 py-2 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 sm:text-sm transition-all duration-300 ease-in-out ${
-                  error
-                    ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20'
-                    : focusedField
-                      ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/20 dark:ring-primary-400/20 scale-[1.02] shadow-lg'
-                      : 'border-gray-300 dark:border-gray-600'
-                } ${shakeField ? 'animate-shake' : ''} ${loading ? 'opacity-50' : ''}`}
-              />
-              {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
-            </div>
+            <input
+              ref={emailRef}
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email webauthn"
+              value={email}
+              onChange={handleChange}
+              onFocus={() => setFocusedField(true)}
+              onBlur={() => setFocusedField(false)}
+              disabled={loading}
+              placeholder="name@example.com"
+              className={`block w-full px-4 py-3 border-2 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-300 ${
+                error
+                  ? 'border-red-500 dark:border-red-400 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                  : focusedField
+                    ? 'border-blue-500 dark:border-blue-400 bg-white dark:bg-gray-700 ring-4 ring-blue-500/10 scale-[1.02] shadow-lg'
+                    : 'border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-gray-700'
+              } ${shakeField ? 'animate-shake' : ''} ${loading ? 'opacity-50' : ''}`}
+            />
+            {error && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {error}
+              </p>
+            )}
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="flex w-full justify-center items-center rounded-md bg-primary-500 dark:bg-primary-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-600 dark:hover:bg-primary-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:focus-visible:outline-primary-400 disabled:opacity-50 transition-colors duration-200"
+            className="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold text-lg rounded-2xl shadow-lg shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
-                <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 인증 중...
               </>
             ) : (
               <>
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-                  />
-                </svg>
+                <Key size={20} />
                 로그인
               </>
             )}
@@ -204,7 +169,7 @@ const LoginForm = ({ onSwitchToSignup, onSwitchToRecovery }) => {
           <button
             type="button"
             onClick={onSwitchToRecovery}
-            className="w-full text-center text-sm font-medium text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300"
+            className="w-full text-center text-sm font-medium text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors"
           >
             Passkey를 분실하셨나요?
           </button>
@@ -216,7 +181,7 @@ const LoginForm = ({ onSwitchToSignup, onSwitchToRecovery }) => {
           <button
             type="button"
             onClick={onSwitchToSignup}
-            className="font-semibold text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 underline bg-transparent border-none p-0 cursor-pointer"
+            className="font-bold text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 underline bg-transparent border-none p-0 cursor-pointer transition-colors"
           >
             회원가입
           </button>

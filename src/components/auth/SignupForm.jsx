@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import toast from 'react-hot-toast';
+import { UserPlus, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useRecaptcha } from '../../hooks/useRecaptcha';
 import { validateEmail, validateName } from '../../utils/validation';
@@ -126,30 +127,34 @@ const SignupForm = ({ onSwitchToLogin }) => {
     setFocusedField(null);
   };
 
+  const getInputClassName = (fieldName) => {
+    const hasError = errors[fieldName];
+    const isFocused = focusedField === fieldName;
+    const isShaking = shakeFields[fieldName];
+
+    return `block w-full px-4 py-3 border-2 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-300 ${
+      hasError
+        ? 'border-red-500 dark:border-red-400 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+        : isFocused
+          ? 'border-blue-500 dark:border-blue-400 bg-white dark:bg-gray-700 ring-4 ring-blue-500/10 scale-[1.02] shadow-lg'
+          : 'border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-gray-700'
+    } ${isShaking ? 'animate-shake' : ''} ${loading ? 'opacity-50' : ''}`;
+  };
+
   if (!webAuthnSupported) {
     return (
-      <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0 bg-white dark:bg-gray-900 transition-colors duration-200">
-        <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
-          Pay Me Back
-        </h1>
-        <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 md:mt-0 sm:max-w-md xl:p-0 transition-colors duration-200 mt-6">
-          <div className="p-6 space-y-4 md:space-y-6 sm:p-8 text-center">
-            <div className="text-red-500 dark:text-red-400">
-              <svg
-                className="w-16 h-16 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <h2 className="text-lg font-semibold mb-2">Passkey 미지원 브라우저</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+          <h1 className="text-center text-4xl font-bold bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+            Fliq
+          </h1>
+          <div className="mt-10">
+            <div className="card text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-red-500/25">
+                <AlertTriangle size={36} className="text-white" />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Passkey 미지원 브라우저</h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
                 이 브라우저는 Passkey(WebAuthn)를 지원하지 않습니다.
                 <br />
                 최신 버전의 Chrome, Safari, Firefox, Edge를 사용해주세요.
@@ -162,122 +167,134 @@ const SignupForm = ({ onSwitchToLogin }) => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0 bg-white dark:bg-gray-900 transition-colors duration-200">
-      <h1 className="text-2xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-3xl mb-8">
-        회원가입
-      </h1>
-      <div className="w-full bg-white dark:bg-gray-800 rounded-lg shadow border border-gray-200 dark:border-gray-700 sm:max-w-md xl:p-0 transition-colors duration-200">
-        <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-          <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit} noValidate>
-            <div>
-              <label
-                htmlFor="name"
-                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >
-                이름
-              </label>
-              <input
-                ref={nameRef}
-                type="text"
-                name="name"
-                id="name"
-                value={formData.name}
-                onChange={handleChange}
-                onKeyDown={(e) => handleKeyDown(e, emailRef)}
-                onFocus={() => handleFocus('name')}
-                onBlur={handleBlur}
-                disabled={loading}
-                className={`bg-white dark:bg-gray-700 border text-gray-900 dark:text-white rounded-lg block w-full p-2.5 placeholder-gray-400 dark:placeholder-gray-400 transition-all duration-300 ease-in-out ${
-                  errors.name
-                    ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20'
-                    : focusedField === 'name'
-                      ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/20 dark:ring-primary-400/20 scale-[1.02] shadow-lg'
-                      : 'border-gray-300 dark:border-gray-600'
-                } ${shakeFields.name ? 'animate-shake' : ''} ${loading ? 'opacity-50' : ''}`}
-                placeholder="이름을 입력해주세요"
-              />
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
-              )}
-            </div>
+    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-sm">
+        <h1 className="text-center text-4xl font-bold bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+          Fliq
+        </h1>
+        <p className="mt-4 text-center text-gray-500 dark:text-gray-400">
+          새 계정을 만들어 시작하세요
+        </p>
+      </div>
 
-            <div>
-              <label
-                htmlFor="email"
-                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >
-                이메일
-              </label>
-              <input
-                ref={emailRef}
-                type="email"
-                name="email"
-                id="email"
-                value={formData.email}
-                onChange={handleChange}
-                onFocus={() => handleFocus('email')}
-                onBlur={handleBlur}
-                disabled={loading}
-                className={`bg-white dark:bg-gray-700 border text-gray-900 dark:text-white rounded-lg block w-full p-2.5 placeholder-gray-400 dark:placeholder-gray-400 transition-all duration-300 ease-in-out ${
-                  errors.email
-                    ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20'
-                    : focusedField === 'email'
-                      ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/20 dark:ring-primary-400/20 scale-[1.02] shadow-lg'
-                      : 'border-gray-300 dark:border-gray-600'
-                } ${shakeFields.email ? 'animate-shake' : ''} ${loading ? 'opacity-50' : ''}`}
-                placeholder="name@company.com"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
-              )}
-            </div>
-
-            {/* reCAPTCHA v2 (필요 시에만 표시) */}
-            {isV2Required && RECAPTCHA.V2_SITE_KEY && (
-              <div className="flex justify-center">
-                <ReCAPTCHA
-                  ref={v2Ref}
-                  sitekey={RECAPTCHA.V2_SITE_KEY}
-                  onChange={onV2Change}
-                  onExpired={onV2Expired}
-                  theme="light"
-                />
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading || (isV2Required && !isV2Ready)}
-              className="w-full text-white bg-primary-500 dark:bg-primary-500 hover:bg-primary-600 dark:hover:bg-primary-400 focus:ring-4 focus:outline-none focus:ring-primary-300 dark:focus:ring-primary-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+      <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+        <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+          <div>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
-              {loading ? '처리중...' : '인증번호 받기'}
+              이름
+            </label>
+            <input
+              ref={nameRef}
+              type="text"
+              name="name"
+              id="name"
+              value={formData.name}
+              onChange={handleChange}
+              onKeyDown={(e) => handleKeyDown(e, emailRef)}
+              onFocus={() => handleFocus('name')}
+              onBlur={handleBlur}
+              disabled={loading}
+              className={getInputClassName('name')}
+              placeholder="이름을 입력해주세요"
+            />
+            {errors.name && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.name}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              이메일
+            </label>
+            <input
+              ref={emailRef}
+              type="email"
+              name="email"
+              id="email"
+              value={formData.email}
+              onChange={handleChange}
+              onFocus={() => handleFocus('email')}
+              onBlur={handleBlur}
+              disabled={loading}
+              className={getInputClassName('email')}
+              placeholder="name@example.com"
+            />
+            {errors.email && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {errors.email}
+              </p>
+            )}
+          </div>
+
+          {/* reCAPTCHA v2 (필요 시에만 표시) */}
+          {isV2Required && RECAPTCHA.V2_SITE_KEY && (
+            <div className="flex justify-center">
+              <ReCAPTCHA
+                ref={v2Ref}
+                sitekey={RECAPTCHA.V2_SITE_KEY}
+                onChange={onV2Change}
+                onExpired={onV2Expired}
+                theme="light"
+              />
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || (isV2Required && !isV2Ready)}
+            className="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold text-lg rounded-2xl shadow-lg shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? (
+              <>
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                처리중...
+              </>
+            ) : (
+              <>
+                <UserPlus size={20} />
+                인증번호 받기
+              </>
+            )}
+          </button>
+
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+            이미 계정이 있으신가요?{' '}
+            <button
+              type="button"
+              onClick={onSwitchToLogin}
+              className="font-bold text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 underline bg-transparent border-none p-0 cursor-pointer transition-colors"
+            >
+              로그인
             </button>
+          </p>
 
-            <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-              이미 계정이 있으신가요?{' '}
-              <button
-                type="button"
-                onClick={onSwitchToLogin}
-                className="font-medium text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 underline bg-transparent border-none p-0 cursor-pointer"
-              >
-                로그인
-              </button>
-            </p>
-
-            {/* reCAPTCHA 안내 문구 (배지 숨김 시 필수) */}
-            <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
-              이 사이트는 reCAPTCHA로 보호되며{' '}
-              <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">
-                개인정보처리방침
-              </a>
-              과{' '}
-              <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline">
-                이용약관
-              </a>
-              이 적용됩니다.
-            </p>
-          </form>
-        </div>
+          {/* reCAPTCHA 안내 문구 (배지 숨김 시 필수) */}
+          <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
+            이 사이트는 reCAPTCHA로 보호되며{' '}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-500">
+              개인정보처리방침
+            </a>
+            과{' '}
+            <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-500">
+              이용약관
+            </a>
+            이 적용됩니다.
+          </p>
+        </form>
       </div>
     </div>
   );

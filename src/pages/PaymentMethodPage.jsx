@@ -123,44 +123,45 @@ const PaymentMethodPage = () => {
       <div className="page-content">
         {/* 등록된 결제 수단 목록 */}
         <div className="card mb-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-900 dark:text-white">내 계좌</h3>
-            <span className="text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-bold text-gray-900 dark:text-white">내 계좌</h3>
+            <span className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
               {paymentMethods.length}개
             </span>
           </div>
 
           {loading ? (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              로딩 중...
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="w-10 h-10 border-3 border-gray-200 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin" />
+              <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">로딩 중...</p>
             </div>
           ) : paymentMethods.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {paymentMethods.map((method) => (
                 <div
                   key={method.id}
-                  className={`p-4 rounded-xl border-2 transition-all ${
+                  className={`p-4 rounded-2xl border-2 transition-all duration-300 ${
                     method.isDefault
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'
+                      ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20'
+                      : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50'
                   }`}
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                         method.isDefault
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                          ? 'bg-gradient-to-br from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/25'
+                          : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                       }`}>
-                        <Building2 size={20} />
+                        <Building2 size={24} />
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-900 dark:text-white">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-bold text-gray-900 dark:text-white">
                             {sanitizeText(getBankLabel(method.bankCode))}
                           </span>
                           {method.isDefault && (
-                            <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">
+                            <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full font-medium">
                               기본
                             </span>
                           )}
@@ -178,27 +179,27 @@ const PaymentMethodPage = () => {
                       {!method.isDefault && (
                         <button
                           onClick={() => handleSetDefault(method.id)}
-                          className="p-2 text-gray-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 rounded-lg transition-colors"
+                          className="p-2.5 text-gray-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl transition-all duration-200"
                           title="기본 설정"
                         >
-                          <Star size={18} />
+                          <Star size={20} />
                         </button>
                       )}
                       {paymentMethods.length > 1 ? (
                         <button
                           onClick={() => handleDelete(method.id)}
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200"
                           title="삭제"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={20} />
                         </button>
                       ) : (
                         <button
                           disabled
-                          className="p-2 text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                          className="p-2.5 text-gray-300 dark:text-gray-600 cursor-not-allowed"
                           title="최소 1개의 계좌가 필요합니다"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={20} />
                         </button>
                       )}
                     </div>
@@ -207,10 +208,12 @@ const PaymentMethodPage = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <CreditCard size={48} className="mx-auto mb-3 text-gray-300 dark:text-gray-600" />
-              <p className="text-gray-500 dark:text-gray-400 mb-1">등록된 계좌가 없습니다</p>
-              <p className="text-sm text-gray-400 dark:text-gray-500">
+            <div className="text-center py-12">
+              <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CreditCard size={36} className="text-gray-400 dark:text-gray-500" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">등록된 계좌가 없습니다</h3>
+              <p className="text-gray-500 dark:text-gray-400">
                 정산 시 송금받을 계좌를 등록해주세요
               </p>
             </div>
@@ -218,7 +221,7 @@ const PaymentMethodPage = () => {
         </div>
 
         {/* 안내 문구 */}
-        <div className="px-4 py-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl mb-4">
+        <div className="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl mb-4">
           <p className="text-sm text-blue-700 dark:text-blue-300">
             등록된 기본 계좌로 정산 금액을 송금받을 수 있습니다.
             토스 딥링크를 통해 빠른 송금이 지원됩니다.
@@ -228,10 +231,11 @@ const PaymentMethodPage = () => {
         {/* 추가 버튼 */}
         <Button
           fullWidth
+          size="lg"
           onClick={() => setShowAddModal(true)}
           className="flex items-center justify-center gap-2"
         >
-          <Plus size={20} />
+          <Plus size={22} />
           계좌 추가
         </Button>
       </div>
@@ -242,16 +246,16 @@ const PaymentMethodPage = () => {
         onClose={() => setShowAddModal(false)}
         title="계좌 추가"
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* 플랫폼 선택 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               송금 플랫폼
             </label>
             <select
               value={formData.platform}
               onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300"
             >
               {PAYMENT_PLATFORMS.map((platform) => (
                 <option key={platform.value} value={platform.value}>
@@ -263,13 +267,13 @@ const PaymentMethodPage = () => {
 
           {/* 은행 선택 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               은행
             </label>
             <select
               value={formData.bankCode}
               onChange={(e) => setFormData({ ...formData, bankCode: e.target.value })}
-              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:bg-white dark:focus:bg-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300"
             >
               {BANK_CODES.map((bank) => (
                 <option key={bank.value} value={bank.value}>
@@ -281,7 +285,7 @@ const PaymentMethodPage = () => {
 
           {/* 계좌번호 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               계좌번호
             </label>
             <input
@@ -290,13 +294,13 @@ const PaymentMethodPage = () => {
               onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
               placeholder="'-' 없이 입력"
               maxLength={50}
-              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 focus:bg-white dark:focus:bg-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300"
             />
           </div>
 
           {/* 예금주명 */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               예금주명
             </label>
             <input
@@ -305,12 +309,12 @@ const PaymentMethodPage = () => {
               onChange={(e) => setFormData({ ...formData, accountHolder: e.target.value })}
               placeholder="예금주 이름"
               maxLength={50}
-              className="w-full px-3 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 focus:bg-white dark:focus:bg-gray-700 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all duration-300"
             />
           </div>
 
           {/* 버튼 */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-3 pt-2">
             <Button
               type="button"
               variant="secondary"

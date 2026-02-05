@@ -86,28 +86,20 @@ const RecoveryForm = ({ onSwitchToLogin }) => {
 
   if (!webAuthnSupported) {
     return (
-      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-white dark:bg-gray-900 transition-colors duration-200">
+      <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-          <h1 className="text-center text-3xl font-bold text-primary-500 dark:text-primary-400">
-            Pay Me Back
+          <h1 className="text-center text-4xl font-bold bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+            Fliq
           </h1>
-          <div className="mt-10 text-center">
-            <div className="text-red-500 dark:text-red-400">
-              <svg
-                className="w-16 h-16 mx-auto mb-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <h2 className="text-lg font-semibold mb-2">Passkey 미지원 브라우저</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
+          <div className="mt-10">
+            <div className="card text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-red-500 to-rose-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-red-500/25">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Passkey 미지원 브라우저</h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
                 이 브라우저는 Passkey(WebAuthn)를 지원하지 않습니다.
                 <br />
                 최신 버전의 Chrome, Safari, Firefox, Edge를 사용해주세요.
@@ -120,51 +112,53 @@ const RecoveryForm = ({ onSwitchToLogin }) => {
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8 bg-white dark:bg-gray-900 transition-colors duration-200">
+    <div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h1 className="text-center text-3xl font-bold text-primary-500 dark:text-primary-400">
-          Pay Me Back
+        <h1 className="text-center text-4xl font-bold bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+          Fliq
         </h1>
-        <h2 className="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900 dark:text-white">
-          계정 복구
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+        <p className="mt-4 text-center text-gray-500 dark:text-gray-400">
           이메일 인증 후 새 Passkey를 등록합니다
         </p>
       </div>
 
       <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div>
             <label
               htmlFor="email"
-              className="block text-sm/6 font-medium text-gray-900 dark:text-gray-200"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               이메일 주소
             </label>
-            <div className="mt-2">
-              <input
-                ref={emailRef}
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={handleChange}
-                onFocus={() => setFocusedField(true)}
-                onBlur={() => setFocusedField(false)}
-                disabled={loading}
-                className={`block w-full rounded-md border bg-white dark:bg-gray-800 px-3 py-1.5 text-base text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 sm:text-sm/6 transition-all duration-300 ease-in-out ${
-                  error
-                    ? 'border-red-500 dark:border-red-400 ring-2 ring-red-500/20 dark:ring-red-400/20'
-                    : focusedField
-                      ? 'border-primary-500 dark:border-primary-400 ring-2 ring-primary-500/20 dark:ring-primary-400/20 scale-[1.02] shadow-lg'
-                      : 'border-gray-300 dark:border-gray-600'
-                } ${shakeField ? 'animate-shake' : ''} ${loading ? 'opacity-50' : ''}`}
-                placeholder="가입한 이메일 주소를 입력하세요"
-              />
-              {error && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>}
-            </div>
+            <input
+              ref={emailRef}
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={handleChange}
+              onFocus={() => setFocusedField(true)}
+              onBlur={() => setFocusedField(false)}
+              disabled={loading}
+              placeholder="가입한 이메일 주소를 입력하세요"
+              className={`block w-full px-4 py-3 border-2 rounded-2xl bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 transition-all duration-300 ${
+                error
+                  ? 'border-red-500 dark:border-red-400 bg-red-50 dark:bg-red-900/20 focus:border-red-500 focus:ring-4 focus:ring-red-500/10'
+                  : focusedField
+                    ? 'border-blue-500 dark:border-blue-400 bg-white dark:bg-gray-700 ring-4 ring-blue-500/10 scale-[1.02] shadow-lg'
+                    : 'border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:bg-white dark:focus:bg-gray-700'
+              } ${shakeField ? 'animate-shake' : ''} ${loading ? 'opacity-50' : ''}`}
+            />
+            {error && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                {error}
+              </p>
+            )}
           </div>
 
           {/* reCAPTCHA v2 (필요 시에만 표시) */}
@@ -180,65 +174,44 @@ const RecoveryForm = ({ onSwitchToLogin }) => {
             </div>
           )}
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading || (isV2Required && !isV2Ready)}
-              className="flex w-full justify-center rounded-md bg-primary-500 dark:bg-primary-500 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-primary-600 dark:hover:bg-primary-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500 dark:focus-visible:outline-primary-400 disabled:opacity-50 transition-colors duration-200"
-            >
-              {loading ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  처리중...
-                </>
-              ) : (
-                '인증번호 받기'
-              )}
-            </button>
-          </div>
-        </form>
-
-        <p className="mt-10 text-center text-sm/6 text-gray-500 dark:text-gray-400">
           <button
-            type="button"
-            onClick={onSwitchToLogin}
-            className="font-semibold text-primary-500 dark:text-primary-400 hover:text-primary-600 dark:hover:text-primary-300 underline bg-transparent border-none p-0 cursor-pointer"
+            type="submit"
+            disabled={loading || (isV2Required && !isV2Ready)}
+            className="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold text-lg rounded-2xl shadow-lg shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            로그인으로 돌아가기
+            {loading ? (
+              <>
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                처리중...
+              </>
+            ) : (
+              '인증번호 받기'
+            )}
           </button>
-        </p>
 
-        {/* reCAPTCHA 안내 문구 (배지 숨김 시 필수) */}
-        <p className="mt-4 text-xs text-gray-400 dark:text-gray-500 text-center">
-          이 사이트는 reCAPTCHA로 보호되며{' '}
-          <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">
-            개인정보처리방침
-          </a>
-          과{' '}
-          <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline">
-            이용약관
-          </a>
-          이 적용됩니다.
-        </p>
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+            <button
+              type="button"
+              onClick={onSwitchToLogin}
+              className="font-bold text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 underline bg-transparent border-none p-0 cursor-pointer transition-colors"
+            >
+              로그인으로 돌아가기
+            </button>
+          </p>
+
+          {/* reCAPTCHA 안내 문구 (배지 숨김 시 필수) */}
+          <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
+            이 사이트는 reCAPTCHA로 보호되며{' '}
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-500">
+              개인정보처리방침
+            </a>
+            과{' '}
+            <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-500">
+              이용약관
+            </a>
+            이 적용됩니다.
+          </p>
+        </form>
       </div>
     </div>
   );
