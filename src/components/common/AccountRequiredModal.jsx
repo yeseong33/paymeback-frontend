@@ -64,10 +64,11 @@ const AccountRequiredModal = ({ isOpen, onClose, onSuccess, title = '계좌 등�
             {/* 헤더 이미지 */}
             <div className="h-32 bg-gradient-to-br from-blue-500 to-indigo-600 relative">
               <button
+                type="button"
                 onClick={handleClose}
-                className="absolute top-4 right-4 w-8 h-8 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+                className="absolute top-3 right-3 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors z-10"
               >
-                <X className="text-white" size={18} />
+                <X className="text-white" size={20} />
               </button>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
@@ -118,8 +119,9 @@ const AccountRequiredModal = ({ isOpen, onClose, onSuccess, title = '계좌 등�
               </button>
               <h3 className="font-semibold text-gray-900 dark:text-white">계좌 등록</h3>
               <button
+                type="button"
                 onClick={handleClose}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
               >
                 <X size={20} />
               </button>

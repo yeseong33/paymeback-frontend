@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, LogOut, ChevronRight, Sun, Moon, CreditCard } from 'lucide-react';
+import { User, Mail, LogOut, ChevronRight, Sun, Moon, CreditCard, UserX } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
+import { userAPI } from '../api/user';
 import Header from '../components/common/Header';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
@@ -16,12 +17,29 @@ const ProfilePage = () => {
   const { logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [showNameEdit, setShowNameEdit] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [newName, setNewName] = useState(user?.name || '');
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/auth');
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleteLoading(true);
+    try {
+      await userAPI.deleteMe();
+      toast.success('회원 탈퇴가 완료되었습니다.');
+      logout();
+      navigate('/auth', { replace: true });
+    } catch (error) {
+      toast.error(error.message || '회원 탈퇴에 실패했습니다.');
+    } finally {
+      setDeleteLoading(false);
+      setShowDeleteConfirm(false);
+    }
   };
 
   const handleNameUpdate = async () => {
@@ -136,13 +154,24 @@ const ProfilePage = () => {
         </div>
 
         {/* 로그아웃 */}
-        <div className="card">
+        <div className="card mb-4">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 p-3 -mx-3 -my-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
           >
             <LogOut size={20} />
             <span>로그아웃</span>
+          </button>
+        </div>
+
+        {/* 회원 탈퇴 */}
+        <div className="card">
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="w-full flex items-center gap-3 p-3 -mx-3 -my-3 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+          >
+            <UserX size={20} />
+            <span>회원 탈퇴</span>
           </button>
         </div>
       </div>
@@ -174,6 +203,46 @@ const ProfilePage = () => {
               loading={loading}
             >
               저장
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* 회원 탈퇴 확인 모달 */}
+      <Modal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="회원 탈퇴"
+      >
+        <div className="space-y-4">
+          <div className="text-center py-4">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <UserX size={32} className="text-red-600 dark:text-red-400" />
+            </div>
+            <p className="text-gray-700 dark:text-gray-300 mb-2">
+              정말 탈퇴하시겠습니까?
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              탈퇴 시 계좌 정보와 로그인 정보가 삭제됩니다.<br />
+              모임 및 정산 기록은 익명화되어 보존됩니다.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => setShowDeleteConfirm(false)}
+              disabled={deleteLoading}
+            >
+              취소
+            </Button>
+            <Button
+              fullWidth
+              onClick={handleDeleteAccount}
+              loading={deleteLoading}
+              className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-500"
+            >
+              탈퇴하기
             </Button>
           </div>
         </div>

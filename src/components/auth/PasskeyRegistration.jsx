@@ -35,12 +35,13 @@ const PasskeyRegistration = ({ onBack }) => {
     try {
       if (isSignup) {
         await signupPasskeyFinish();
-        toast.success('회원가입이 완료되었습니다!');
+        toast.success('Passkey 등록이 완료되었습니다!');
+        // 회원가입은 계좌 등록 화면으로 이동 (authFlow가 SIGNUP_ACCOUNT로 변경됨)
       } else if (isRecovery) {
         await recoveryPasskeyFinish();
         toast.success('Passkey가 재등록되었습니다!');
+        navigate('/main', { replace: true });
       }
-      navigate('/main', { replace: true });
     } catch (err) {
       setError(err.message || 'Passkey 등록에 실패했습니다.');
       setLoading(false);

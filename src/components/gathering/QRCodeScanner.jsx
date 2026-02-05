@@ -2,11 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Camera, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useGathering } from '../../hooks/useGathering';
+import { GATHERING_ERROR_CODES } from '../../utils/errorCodes';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Modal from '../common/Modal';
 
-const QRCodeScanner = ({ isOpen, onClose, onSuccess }) => {
+const QRCodeScanner = ({ isOpen, onClose, onSuccess, onPaymentMethodRequired }) => {
   const { joinGathering, loading } = useGathering();
   const [manualCode, setManualCode] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
@@ -65,6 +66,12 @@ const QRCodeScanner = ({ isOpen, onClose, onSuccess }) => {
       onSuccess(gathering);
       handleClose();
     } catch (error) {
+      // 계좌 미등록 에러인 경우
+      if (error.code === GATHERING_ERROR_CODES.PAYMENT_METHOD_REQUIRED) {
+        handleClose();
+        onPaymentMethodRequired?.();
+        return;
+      }
       toast.error(error.message);
     }
   };

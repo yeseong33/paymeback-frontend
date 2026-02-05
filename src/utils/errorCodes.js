@@ -1,3 +1,13 @@
+// 모임 관련 에러 코드
+export const GATHERING_ERROR_CODES = {
+  PAYMENT_METHOD_REQUIRED: 'G007',
+};
+
+// 결제 수단 관련 에러 코드
+export const PAYMENT_METHOD_ERROR_CODES = {
+  CANNOT_DELETE_LAST: 'PM006',
+};
+
 export const AUTH_ERROR_CODES = {
   REQUIRES_OTP: 'U004',
   USER_NOT_FOUND: 'U001',

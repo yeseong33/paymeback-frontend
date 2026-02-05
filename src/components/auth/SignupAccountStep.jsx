@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Building2, ChevronRight, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { paymentMethodAPI, PAYMENT_PLATFORMS, BANK_CODES } from '../../api/paymentMethod';
 import { useAuth } from '../../hooks/useAuth';
 
 const SignupAccountStep = ({ onBack }) => {
-  const { goToSignupPasskey } = useAuth();
+  const navigate = useNavigate();
+  const { completeSignup } = useAuth();
   const [step, setStep] = useState('intro'); // 'intro' | 'form'
   const [formData, setFormData] = useState({
     platform: 'TOSS',
@@ -35,7 +37,8 @@ const SignupAccountStep = ({ onBack }) => {
     try {
       await paymentMethodAPI.create(formData);
       toast.success('계좌가 등록되었습니다!');
-      goToSignupPasskey();
+      completeSignup();
+      navigate('/main', { replace: true });
     } catch (error) {
       console.error('Failed to create payment method:', error);
       toast.error(error.message || '계좌 등록에 실패했습니다.');
@@ -45,7 +48,8 @@ const SignupAccountStep = ({ onBack }) => {
   };
 
   const handleSkip = () => {
-    goToSignupPasskey();
+    completeSignup();
+    navigate('/main', { replace: true });
   };
 
   if (step === 'intro') {
@@ -71,18 +75,18 @@ const SignupAccountStep = ({ onBack }) => {
             </p>
 
             <div className="space-y-3 mb-8">
-              <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">1</div>
+              <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">✓</div>
                 <div>
-                  <div className="font-medium text-gray-900 dark:text-white">송금받을 계좌 등록</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">토스, 카카오페이 등</div>
+                  <div className="font-medium text-gray-900 dark:text-white">Passkey 등록 완료</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">지문/얼굴 인식 설정됨</div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl opacity-60">
-                <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-white font-bold">2</div>
+              <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">2</div>
                 <div>
-                  <div className="font-medium text-gray-600 dark:text-gray-300">Passkey 등록</div>
-                  <div className="text-sm text-gray-400 dark:text-gray-500">지문/얼굴 인식 설정</div>
+                  <div className="font-medium text-gray-900 dark:text-white">송금받을 계좌 등록</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">토스, 카카오페이 등 (선택)</div>
                 </div>
               </div>
             </div>

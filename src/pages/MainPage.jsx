@@ -147,12 +147,22 @@ const MainPage = () => {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onSuccess={handleCreateSuccess}
+        onPaymentMethodRequired={() => {
+          setPendingAction('create');
+          setShowAccountModal(true);
+          refetchAccount();
+        }}
       />
-      
+
       <QRCodeScanner
         isOpen={showScannerModal}
         onClose={() => setShowScannerModal(false)}
         onSuccess={handleJoinSuccess}
+        onPaymentMethodRequired={() => {
+          setPendingAction('join');
+          setShowAccountModal(true);
+          refetchAccount();
+        }}
       />
 
       <AccountRequiredModal

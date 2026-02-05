@@ -1,8 +1,8 @@
-# PayMeBack Frontend 프로젝트
+# Fliq Frontend 프로젝트
 
 ## 1. 프로젝트 개요
 
-모임 비용 정산 및 결제 서비스의 웹 프론트엔드 애플리케이션.
+모임 비용 정산 서비스 Fliq의 웹 프론트엔드 애플리케이션.
 React 18 + Vite 7 기반의 SPA(Single Page Application).
 
 ## 2. 기술 스택
@@ -301,7 +301,7 @@ VITE_RECAPTCHA_V3_SITE_KEY=...
 VITE_RECAPTCHA_V2_SITE_KEY=...
 
 # .env.production
-VITE_API_BASE_URL=https://api.dutchpay.com/api
+VITE_API_BASE_URL=https://api.fliq-it.com/api/v1
 VITE_ENV=production
 ```
 

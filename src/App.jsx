@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import { useAuthStore } from './store/authStore';
-import { RECAPTCHA } from './utils/constants';
+import { RECAPTCHA, AUTH_FLOW } from './utils/constants';
 import AuthPage from './pages/AuthPage';
 import MainPage from './pages/MainPage';
 import GatheringPage from './pages/GatheringPage';
@@ -12,8 +12,11 @@ import ProfilePage from './pages/ProfilePage';
 import PaymentMethodPage from './pages/PaymentMethodPage';
 
 function App() {
-  const { user, needsOTPVerification, pendingCredentials } = useAuthStore();
+  const { user, authFlow, needsOTPVerification, pendingCredentials } = useAuthStore();
   const location = useLocation();
+
+  // 회원가입 계좌 등록 단계에서는 인증 페이지 유지
+  const isSignupAccountStep = authFlow === AUTH_FLOW.SIGNUP_ACCOUNT;
 
   // OTP 인증이 필요하고 현재 인증 페이지가 아닐 때
   if (needsOTPVerification && location.pathname !== '/auth') {
@@ -64,9 +67,9 @@ function App() {
         }}
       />
       <Routes>
-        <Route 
-          path="/auth/*" 
-          element={!user ? <AuthPage /> : <Navigate to="/main" replace />} 
+        <Route
+          path="/auth/*"
+          element={(!user || isSignupAccountStep) ? <AuthPage /> : <Navigate to="/main" replace />}
         />
         <Route 
           path="/main" 

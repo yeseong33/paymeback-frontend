@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import toast from 'react-hot-toast';
 import { useGathering } from '../../hooks/useGathering';
 import { validateGatheringTitle, validateGatheringDescription } from '../../utils/validation';
+import { GATHERING_ERROR_CODES } from '../../utils/errorCodes';
 import Button from '../common/Button';
 import Input from '../common/Input';
 import Modal from '../common/Modal';
 
-const CreateGathering = ({ isOpen, onClose, onSuccess }) => {
+const CreateGathering = ({ isOpen, onClose, onSuccess, onPaymentMethodRequired }) => {
   const { createGathering, loading } = useGathering();
   const [formData, setFormData] = useState({
     title: '',
@@ -40,6 +41,12 @@ const CreateGathering = ({ isOpen, onClose, onSuccess }) => {
       onSuccess(gathering);
       handleClose();
     } catch (error) {
+      // 계좌 미등록 에러인 경우
+      if (error.code === GATHERING_ERROR_CODES.PAYMENT_METHOD_REQUIRED) {
+        handleClose();
+        onPaymentMethodRequired?.();
+        return;
+      }
       toast.error(error.message);
     }
   };

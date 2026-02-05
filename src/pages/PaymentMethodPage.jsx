@@ -184,13 +184,23 @@ const PaymentMethodPage = () => {
                           <Star size={18} />
                         </button>
                       )}
-                      <button
-                        onClick={() => handleDelete(method.id)}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        title="삭제"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      {paymentMethods.length > 1 ? (
+                        <button
+                          onClick={() => handleDelete(method.id)}
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          title="삭제"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      ) : (
+                        <button
+                          disabled
+                          className="p-2 text-gray-300 dark:text-gray-600 cursor-not-allowed"
+                          title="최소 1개의 계좌가 필요합니다"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -263,6 +263,19 @@ const SignupForm = ({ onSwitchToLogin }) => {
                 로그인
               </button>
             </p>
+
+            {/* reCAPTCHA 안내 문구 (배지 숨김 시 필수) */}
+            <p className="text-xs text-gray-400 dark:text-gray-500 text-center">
+              이 사이트는 reCAPTCHA로 보호되며{' '}
+              <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline">
+                개인정보처리방침
+              </a>
+              과{' '}
+              <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline">
+                이용약관
+              </a>
+              이 적용됩니다.
+            </p>
           </form>
         </div>
       </div>

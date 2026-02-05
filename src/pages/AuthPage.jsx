@@ -20,12 +20,12 @@ const AuthPage = () => {
     resetFlow,
   } = useAuth();
 
-  // 인증된 사용자는 메인 페이지로 리다이렉트
+  // 인증된 사용자는 메인 페이지로 리다이렉트 (단, 계좌 등록 단계는 제외)
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && authFlow !== AUTH_FLOW.SIGNUP_ACCOUNT) {
       navigate('/main', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authFlow, navigate]);
 
 
   const handleSwitchToSignup = () => {
